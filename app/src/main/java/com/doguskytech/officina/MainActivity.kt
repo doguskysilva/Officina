@@ -4,13 +4,16 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation3.runtime.NavKey
+import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.runtime.rememberNavBackStack
+import androidx.navigation3.ui.NavDisplay
+import com.doguskytech.officina.navigation.NewTask
+import com.doguskytech.officina.navigation.ProjectDetail
+import com.doguskytech.officina.navigation.ProjectList
+import com.doguskytech.officina.screens.NewTaskScreen
+import com.doguskytech.officina.screens.ProjectDetailScreen
+import com.doguskytech.officina.screens.ProjectListScreen
 import com.doguskytech.officina.ui.theme.OfficinaTheme
 
 class MainActivity : ComponentActivity() {
@@ -19,29 +22,48 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             OfficinaTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+                // rememberNavBackStack:
+                // - persiste rotação e process death (usa rememberSaveable internamente)
+                // - exige @Serializable nos NavKeys
+                // - começa com ProjectList como destino inicial
+                val backStack = rememberNavBackStack(ProjectList)
+
+                NavDisplay(
+                    backStack = backStack,
+                    // onBack = o que acontece quando o sistema dispara "voltar"
+                    // removeLastOrNull = não lança exceção se a lista estiver vazia
+                    onBack = { backStack.removeLastOrNull() },
+                    entryProvider = entryProvider<NavKey> {
+
+                        entry<ProjectList> {
+                            ProjectListScreen(
+                                onProjectClick = { route -> backStack.add(route) }
+                            )
+                        }
+
+                        entry<ProjectDetail> { route ->
+                            // `route` aqui já é ProjectDetail com os args type-safe
+                            ProjectDetailScreen(
+                                projectId = route.projectId,
+                                projectName = route.projectName,
+                                onBack = { backStack.removeLastOrNull() },
+                                onNewTaskClick = { newTaskRoute -> backStack.add(newTaskRoute) }
+                            )
+                        }
+
+                        entry<NewTask> { route ->
+                            NewTaskScreen(
+                                projectId = route.projectId,
+                                onBack = { backStack.removeLastOrNull() },
+                                onSave = { taskName ->
+                                    // Por ora só volta. No Módulo 4 retornaremos resultado real.
+                                    backStack.removeLastOrNull()
+                                }
+                            )
+                        }
+                    }
+                )
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    OfficinaTheme {
-        Greeting("Android")
     }
 }
