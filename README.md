@@ -11,6 +11,7 @@ Projeto de aprendizagem Android desenvolvido como laboratório prático para dom
 | **2.1** | ListDetail com Material Adaptive — detailPlaceholder, extraPane, foldables | [`74e548f`](../../commit/74e548f) | [lesson2.1.md](docs/lesson2.1.md) |
 | **2.2** | extraPane na prática — NewTask como terceiro painel em tablets largos | [`253ed9a`](../../commit/253ed9a) | [lesson2.2.md](docs/lesson2.2.md) |
 | **3** | Scene Decorators — NavigationBar/Rail adaptativo, derived key, OverlayScene | [`48fc407`](../../commit/48fc407) | [lesson3.md](docs/lesson3.md) |
+| **4** | Múltiplos back stacks — histórico por aba, selectedTab explícito | [`d5d5cc9`](../../commit/d5d5cc9) | [lesson4.md](docs/lesson4.md) |
 
 ## Tópicos de Aprendizagem
 
@@ -21,25 +22,25 @@ Projeto de aprendizagem Android desenvolvido como laboratório prático para dom
 - `LazyColumn`, `LazyRow` e listas de alta performance
 
 ### Navigation 3
-- Modelo mental: back stack como lista mutável
-- `NavKey`, `NavEntry`, `NavDisplay`
-- `entryProvider` DSL e navegação type-safe com `@Serializable`
-- `rememberNavBackStack` e persistência de estado
-- Múltiplos back stacks (navegação por abas)
+- ✅ Modelo mental: back stack como lista mutável
+- ✅ `NavKey`, `NavEntry`, `NavDisplay`
+- ✅ `entryProvider` DSL e navegação type-safe com `@Serializable`
+- ✅ `rememberNavBackStack` e persistência de estado
+- ✅ Múltiplos back stacks (navegação por abas)
 - Deep links
 - Animações entre destinos
 
 ### Scenes (Navigation 3)
-- `Scene` e `SceneStrategy` — o sistema adaptativo do Nav3
-- `SinglePaneSceneStrategy` — comportamento padrão
-- `DialogSceneStrategy` — destinos como diálogo
-- `ListDetailSceneStrategy` — layout lista-detalhe adaptativo (Material Adaptive)
+- ✅ `Scene` e `SceneStrategy` — o sistema adaptativo do Nav3
+- ✅ `SinglePaneSceneStrategy` — comportamento padrão
+- ✅ `DialogSceneStrategy` — destinos como diálogo
+- ✅ `ListDetailSceneStrategy` — layout lista-detalhe adaptativo (Material Adaptive)
 - `BottomSheetSceneStrategy` — destinos como bottom sheet
-- `SceneDecoratorStrategy` — envolver scenes com UI comum (top bar, nav rail)
-- Metadata em `NavEntry` para comunicação com a Scene pai
+- ✅ `SceneDecoratorStrategy` — envolver scenes com UI comum (top bar, nav rail)
+- ✅ Metadata em `NavEntry` para comunicação com a Scene pai
 
 ### Adaptive Layout
-- `WindowSizeClass` (Compact / Medium / Expanded)
+- ✅ `WindowSizeClass` (Compact / Medium / Expanded)
 - `NavigationSuiteScaffold` — NavBar / NavRail / NavDrawer automático
 - `ListDetailPaneScaffold` e `SupportingPaneScaffold`
 - Testando em phone e tablet com split-screen e rotação

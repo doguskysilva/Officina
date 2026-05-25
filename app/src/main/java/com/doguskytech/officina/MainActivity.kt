@@ -2,6 +2,7 @@ package com.doguskytech.officina
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
@@ -10,9 +11,10 @@ import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
 import androidx.compose.material3.adaptive.layout.calculatePaneScaffoldDirective
 import androidx.compose.material3.adaptive.navigation3.ListDetailSceneStrategy
 import androidx.compose.material3.adaptive.navigation3.rememberListDetailSceneStrategy
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
@@ -44,15 +46,19 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             OfficinaTheme {
-                val backStack = rememberNavBackStack(ProjectList)
+                // Módulo 4: um back stack por aba — cada aba preserva seu histórico.
+                val projectsBackStack = rememberNavBackStack(ProjectList)
+                val tasksBackStack = rememberNavBackStack(TaskList)
+                val settingsBackStack = rememberNavBackStack(AppSettings)
 
-                // Aba selecionada = primeiro item top-level que encontrar no back stack.
-                // derivedStateOf: só recomputa quando o back stack muda, evita recomposições desnecessárias.
-                val topLevelRoutes = remember { appTabs.map { it.route }.toSet() }
-                val selectedTab by remember {
-                    derivedStateOf {
-                        backStack.firstOrNull { it in topLevelRoutes } ?: ProjectList
-                    }
+                // Aba selecionada agora é estado explícito — não precisa mais de derivedStateOf.
+                var selectedTab by remember { mutableStateOf<NavKey>(ProjectList) }
+
+                // Back stack ativo = o da aba selecionada.
+                val activeBackStack = when (selectedTab) {
+                    ProjectList -> projectsBackStack
+                    TaskList -> tasksBackStack
+                    else -> settingsBackStack
                 }
 
                 val dialogStrategy = DialogSceneStrategy<NavKey>()
@@ -71,17 +77,21 @@ class MainActivity : ComponentActivity() {
                 val navDecorator = rememberNavDecoratorStrategy<NavKey>(
                     selectedTab = selectedTab,
                     onTabSelected = { route ->
-                        // Módulo 3: troca simples — limpa o back stack e vai para a aba.
-                        // Perde o histórico de navegação de cada aba.
-                        // Módulo 4 vai preservar o estado de cada aba com múltiplos back stacks.
-                        backStack.clear()
-                        backStack.add(route)
+                        // Módulo 4: só troca a aba — o back stack de cada aba é preservado.
+                        selectedTab = route
                     }
                 )
 
+                // Fallback para o sistema de back no tablet: quando ListDetailSceneStrategy
+                // agrupa tudo numa única Scene (previousEntries=[]), NavDisplay não habilita
+                // o back nativo — este handler cobre esse caso.
+                BackHandler(enabled = activeBackStack.size > 1) {
+                    activeBackStack.removeLastOrNull()
+                }
+
                 NavDisplay(
-                    backStack = backStack,
-                    onBack = { backStack.removeLastOrNull() },
+                    backStack = activeBackStack,
+                    onBack = { activeBackStack.removeLastOrNull() },
                     sceneStrategies = listOf(dialogStrategy, listDetailStrategy),
                     // sceneDecoratorStrategies é aplicado APÓS as sceneStrategies.
                     // Cada decorator recebe a Scene já calculada e a envolve.
@@ -95,8 +105,9 @@ class MainActivity : ComponentActivity() {
                         ) {
                             ProjectListScreen(
                                 onProjectClick = { route ->
-                                    backStack.removeIf { it is ProjectDetail }
-                                    backStack.add(route)
+                                    // Remove detalhe e nova tarefa do projeto anterior antes de abrir o novo.
+                                    activeBackStack.removeIf { it is ProjectDetail || it is NewTask }
+                                    activeBackStack.add(route)
                                 }
                             )
                         }
@@ -107,9 +118,9 @@ class MainActivity : ComponentActivity() {
                             ProjectDetailScreen(
                                 projectId = route.projectId,
                                 projectName = route.projectName,
-                                onBack = { backStack.removeLastOrNull() },
-                                onNewTaskClick = { newTaskRoute -> backStack.add(newTaskRoute) },
-                                onDeleteClick = { confirmRoute -> backStack.add(confirmRoute) }
+                                onBack = { activeBackStack.removeLastOrNull() },
+                                onNewTaskClick = { newTaskRoute -> activeBackStack.add(newTaskRoute) },
+                                onDeleteClick = { confirmRoute -> activeBackStack.add(confirmRoute) }
                             )
                         }
 
@@ -120,8 +131,8 @@ class MainActivity : ComponentActivity() {
                         ) { route ->
                             NewTaskScreen(
                                 projectId = route.projectId,
-                                onBack = { backStack.removeLastOrNull() },
-                                onSave = { backStack.removeLastOrNull() }
+                                onBack = { activeBackStack.removeLastOrNull() },
+                                onSave = { activeBackStack.removeLastOrNull() }
                             )
                         }
 
@@ -137,10 +148,10 @@ class MainActivity : ComponentActivity() {
                             ConfirmDeleteDialog(
                                 projectName = route.projectName,
                                 onConfirm = {
-                                    backStack.removeLastOrNull()
-                                    backStack.removeLastOrNull()
+                                    activeBackStack.removeLastOrNull()
+                                    activeBackStack.removeLastOrNull()
                                 },
-                                onDismiss = { backStack.removeLastOrNull() }
+                                onDismiss = { activeBackStack.removeLastOrNull() }
                             )
                         }
                     }
