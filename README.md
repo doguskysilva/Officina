@@ -13,7 +13,8 @@ Projeto de aprendizagem Android desenvolvido como laboratório prático para dom
 | **3** | Scene Decorators — NavigationBar/Rail adaptativo, derived key, OverlayScene | [`48fc407`](../../commit/48fc407) | [lesson3.md](docs/lesson3.md) |
 | **4** | Múltiplos back stacks — histórico por aba, selectedTab explícito | [`d5d5cc9`](../../commit/d5d5cc9) | [lesson4.md](docs/lesson4.md) |
 | **5** | BottomSheetSceneStrategy — OverlayScene customizada com ModalBottomSheet | [`a07c1f1`](../../commit/a07c1f1) | [lesson5.md](docs/lesson5.md) |
-| **6** | NavigationSuiteScaffold — NavBar/Rail/Drawer automático, remove NavDecoratorStrategy | WIP | [lesson6.md](docs/lesson6.md) |
+| **6** | NavigationSuiteScaffold — NavBar/Rail/Drawer automático, remove NavDecoratorStrategy | [`8b561d3`](../../commit/8b561d3) | [lesson6.md](docs/lesson6.md) |
+| **7** | ViewModel + StateFlow + UiState selado — fonte única de verdade, reatividade automática | WIP | [lesson7.md](docs/lesson7.md) |
 
 ## Tópicos de Aprendizagem
 
@@ -44,12 +45,12 @@ Projeto de aprendizagem Android desenvolvido como laboratório prático para dom
 ### Adaptive Layout
 - ✅ `WindowSizeClass` (Compact / Medium / Expanded)
 - ✅ `NavigationSuiteScaffold` — NavBar / NavRail / NavDrawer automático
-- `ListDetailPaneScaffold` e `SupportingPaneScaffold`
-- Testando em phone e tablet com split-screen e rotação
+- ✅ `ListDetailPaneScaffold` e `SupportingPaneScaffold`
+- ✅ Testando em phone e tablet com split-screen e rotação
 
 ### Arquitetura
-- `ViewModel` integrado ao Navigation 3
-- `StateFlow` + `UiState` selado
+- ✅ `ViewModel` integrado ao Navigation 3
+- ✅ `StateFlow` + `UiState` selado
 - Modularização de código de navegação
 
 ## Dispositivos de Teste

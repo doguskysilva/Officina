@@ -1,0 +1,47 @@
+package com.doguskytech.officina.data
+
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+
+object ProjectRepository {
+
+    private val _projects = MutableStateFlow(
+        listOf(
+            Project(
+                id = 1, name = "App Mobile",
+                tasks = listOf(Task(1, "Tela de login"), Task(2, "Tela home"), Task(3, "Integração OAuth"))
+            ),
+            Project(
+                id = 2, name = "API Backend",
+                tasks = listOf(Task(4, "Endpoints de auth"), Task(5, "CRUD de projetos"))
+            ),
+            Project(
+                id = 3, name = "Design System",
+                tasks = listOf(Task(6, "Tokens de cor"), Task(7, "Componente Button"), Task(8, "Componente Card"))
+            ),
+            Project(
+                id = 4, name = "Documentação",
+                tasks = listOf(Task(9, "README geral"), Task(10, "Guia de contribuição"))
+            ),
+        )
+    )
+
+    val projects: StateFlow<List<Project>> = _projects.asStateFlow()
+
+    fun addTask(projectId: Int, title: String) {
+        _projects.update { current ->
+            val nextId = (current.flatMap { it.tasks }.maxOfOrNull { it.id } ?: 0) + 1
+            current.map { project ->
+                if (project.id == projectId)
+                    project.copy(tasks = project.tasks + Task(nextId, title))
+                else project
+            }
+        }
+    }
+
+    fun deleteProject(id: Int) {
+        _projects.update { current -> current.filter { it.id != id } }
+    }
+}

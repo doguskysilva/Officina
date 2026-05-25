@@ -23,11 +23,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.scene.DialogSceneStrategy
 import androidx.navigation3.ui.NavDisplay
+import com.doguskytech.officina.data.ProjectRepository
 import com.doguskytech.officina.navigation.AppSettings
 import com.doguskytech.officina.navigation.ConfirmDelete
 import com.doguskytech.officina.navigation.NewTask
@@ -46,6 +49,8 @@ import com.doguskytech.officina.screens.SettingsScreen
 import com.doguskytech.officina.screens.SortProjectsSheet
 import com.doguskytech.officina.screens.TaskListScreen
 import com.doguskytech.officina.ui.theme.OfficinaTheme
+import com.doguskytech.officina.viewmodel.ProjectDetailViewModel
+import com.doguskytech.officina.viewmodel.ProjectListViewModel
 
 class MainActivity : ComponentActivity() {
 
@@ -122,7 +127,13 @@ class MainActivity : ComponentActivity() {
                                     detailPlaceholder = { ProjectDetailPlaceholder() }
                                 )
                             ) {
+                                // Módulo 7: viewModel() funciona aqui porque cada entry do NavDisplay
+                                // é um ViewModelStoreOwner independente (via lifecycle-viewmodel-navigation3).
+                                // O ViewModel é destruído quando o entry sai do back stack.
+                                val vm: ProjectListViewModel = viewModel()
+                                val uiState by vm.uiState.collectAsStateWithLifecycle()
                                 ProjectListScreen(
+                                    uiState = uiState,
                                     onProjectClick = { route ->
                                         activeBackStack.removeIf { it is ProjectDetail || it is NewTask }
                                         activeBackStack.add(route)
@@ -134,9 +145,15 @@ class MainActivity : ComponentActivity() {
                             entry<ProjectDetail>(
                                 metadata = ListDetailSceneStrategy.detailPane()
                             ) { route ->
+                                // key = projectId garante um ViewModel distinto por projeto.
+                                // Sem isso, o Compose reutiliza o ViewModel quando a Scene troca
+                                // de ProjectDetail(1) para ProjectDetail(2) sem resetar o subtree.
+                                val vm: ProjectDetailViewModel = viewModel(key = route.projectId.toString()) {
+                                    ProjectDetailViewModel(route.projectId)
+                                }
+                                val uiState by vm.uiState.collectAsStateWithLifecycle()
                                 ProjectDetailScreen(
-                                    projectId = route.projectId,
-                                    projectName = route.projectName,
+                                    uiState = uiState,
                                     onBack = { activeBackStack.removeLastOrNull() },
                                     onNewTaskClick = { newTaskRoute -> activeBackStack.add(newTaskRoute) },
                                     onDeleteClick = { confirmRoute -> activeBackStack.add(confirmRoute) }
@@ -149,7 +166,10 @@ class MainActivity : ComponentActivity() {
                                 NewTaskScreen(
                                     projectId = route.projectId,
                                     onBack = { activeBackStack.removeLastOrNull() },
-                                    onSave = { activeBackStack.removeLastOrNull() }
+                                    onSave = { title ->
+                                        ProjectRepository.addTask(route.projectId, title)
+                                        activeBackStack.removeLastOrNull()
+                                    }
                                 )
                             }
 
@@ -172,8 +192,9 @@ class MainActivity : ComponentActivity() {
                                 ConfirmDeleteDialog(
                                     projectName = route.projectName,
                                     onConfirm = {
-                                        activeBackStack.removeLastOrNull()
-                                        activeBackStack.removeLastOrNull()
+                                        ProjectRepository.deleteProject(route.projectId)
+                                        activeBackStack.removeLastOrNull() // remove ConfirmDelete
+                                        activeBackStack.removeLastOrNull() // remove ProjectDetail
                                     },
                                     onDismiss = { activeBackStack.removeLastOrNull() }
                                 )
