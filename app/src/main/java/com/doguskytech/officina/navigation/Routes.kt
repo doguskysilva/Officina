@@ -17,3 +17,8 @@ data class NewTask(val projectId: Int) : NavKey
 // Diálogo de confirmação — abrirá como Dialog via DialogSceneStrategy
 @Serializable
 data class ConfirmDelete(val projectId: Int, val projectName: String) : NavKey
+
+// Rotas top-level (abas de navegação)
+@Serializable data object TaskList : NavKey
+
+@Serializable data object AppSettings : NavKey
