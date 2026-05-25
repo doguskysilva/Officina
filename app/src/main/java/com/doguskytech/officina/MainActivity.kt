@@ -7,10 +7,15 @@ import androidx.activity.enableEdgeToEdge
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
+import androidx.navigation3.scene.DialogSceneStrategy
 import androidx.navigation3.ui.NavDisplay
+import com.doguskytech.officina.navigation.ConfirmDelete
 import com.doguskytech.officina.navigation.NewTask
 import com.doguskytech.officina.navigation.ProjectDetail
 import com.doguskytech.officina.navigation.ProjectList
+import com.doguskytech.officina.scenes.ListDetailSceneStrategy
+import com.doguskytech.officina.scenes.rememberListDetailSceneStrategy
+import com.doguskytech.officina.screens.ConfirmDeleteDialog
 import com.doguskytech.officina.screens.NewTaskScreen
 import com.doguskytech.officina.screens.ProjectDetailScreen
 import com.doguskytech.officina.screens.ProjectListScreen
@@ -22,32 +27,45 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             OfficinaTheme {
-                // rememberNavBackStack:
-                // - persiste rotação e process death (usa rememberSaveable internamente)
-                // - exige @Serializable nos NavKeys
-                // - começa com ProjectList como destino inicial
                 val backStack = rememberNavBackStack(ProjectList)
+
+                // Strategies são avaliadas em ordem.
+                // Dialog primeiro: se o último entry for diálogo, ele assume.
+                // ListDetail depois: se a janela for larga e houver lista+detalhe, ele assume.
+                // Fallback automático: SinglePaneSceneStrategy (sempre renderiza o último entry).
+                val dialogStrategy = DialogSceneStrategy<NavKey>()
+                val listDetailStrategy = rememberListDetailSceneStrategy<NavKey>()
 
                 NavDisplay(
                     backStack = backStack,
-                    // onBack = o que acontece quando o sistema dispara "voltar"
-                    // removeLastOrNull = não lança exceção se a lista estiver vazia
                     onBack = { backStack.removeLastOrNull() },
+                    sceneStrategies = listOf(dialogStrategy, listDetailStrategy),
                     entryProvider = entryProvider<NavKey> {
 
-                        entry<ProjectList> {
+                        // metadata = ListDetailSceneStrategy.listPane() → marca como painel de lista
+                        entry<ProjectList>(
+                            metadata = ListDetailSceneStrategy.listPane()
+                        ) {
                             ProjectListScreen(
-                                onProjectClick = { route -> backStack.add(route) }
+                                onProjectClick = { route ->
+                                    // No tablet, ao trocar o item selecionado, removemos o detalhe
+                                    // anterior para não acumular entries no back stack.
+                                    backStack.removeIf { it is ProjectDetail }
+                                    backStack.add(route)
+                                }
                             )
                         }
 
-                        entry<ProjectDetail> { route ->
-                            // `route` aqui já é ProjectDetail com os args type-safe
+                        // metadata = ListDetailSceneStrategy.detailPane() → marca como painel de detalhe
+                        entry<ProjectDetail>(
+                            metadata = ListDetailSceneStrategy.detailPane()
+                        ) { route ->
                             ProjectDetailScreen(
                                 projectId = route.projectId,
                                 projectName = route.projectName,
                                 onBack = { backStack.removeLastOrNull() },
-                                onNewTaskClick = { newTaskRoute -> backStack.add(newTaskRoute) }
+                                onNewTaskClick = { newTaskRoute -> backStack.add(newTaskRoute) },
+                                onDeleteClick = { confirmRoute -> backStack.add(confirmRoute) }
                             )
                         }
 
@@ -55,10 +73,20 @@ class MainActivity : ComponentActivity() {
                             NewTaskScreen(
                                 projectId = route.projectId,
                                 onBack = { backStack.removeLastOrNull() },
-                                onSave = { taskName ->
-                                    // Por ora só volta. No Módulo 4 retornaremos resultado real.
-                                    backStack.removeLastOrNull()
-                                }
+                                onSave = { backStack.removeLastOrNull() }
+                            )
+                        }
+
+                        entry<ConfirmDelete>(
+                            metadata = DialogSceneStrategy.dialog()
+                        ) { route ->
+                            ConfirmDeleteDialog(
+                                projectName = route.projectName,
+                                onConfirm = {
+                                    backStack.removeLastOrNull() // ConfirmDelete
+                                    backStack.removeLastOrNull() // ProjectDetail
+                                },
+                                onDismiss = { backStack.removeLastOrNull() }
                             )
                         }
                     }

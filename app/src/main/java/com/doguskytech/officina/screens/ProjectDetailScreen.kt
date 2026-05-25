@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -19,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.dropUnlessResumed
+import com.doguskytech.officina.navigation.ConfirmDelete
 import com.doguskytech.officina.navigation.NewTask
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -28,6 +30,7 @@ fun ProjectDetailScreen(
     projectName: String,
     onBack: () -> Unit,
     onNewTaskClick: (NewTask) -> Unit,
+    onDeleteClick: (ConfirmDelete) -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -72,6 +75,13 @@ fun ProjectDetailScreen(
                 }
             ) {
                 Text("+ Nova Tarefa")
+            }
+            TextButton(
+                onClick = dropUnlessResumed {
+                    onDeleteClick(ConfirmDelete(projectId = projectId, projectName = projectName))
+                }
+            ) {
+                Text("Excluir projeto", color = MaterialTheme.colorScheme.error)
             }
         }
     }

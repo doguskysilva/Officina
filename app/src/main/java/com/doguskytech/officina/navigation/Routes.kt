@@ -13,3 +13,7 @@ data class ProjectDetail(val projectId: Int, val projectName: String) : NavKey
 
 @Serializable
 data class NewTask(val projectId: Int) : NavKey
+
+// Diálogo de confirmação — abrirá como Dialog via DialogSceneStrategy
+@Serializable
+data class ConfirmDelete(val projectId: Int, val projectName: String) : NavKey
