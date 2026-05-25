@@ -4,6 +4,13 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
+import androidx.compose.material3.adaptive.layout.calculatePaneScaffoldDirective
+import androidx.compose.material3.adaptive.navigation3.ListDetailSceneStrategy
+import androidx.compose.material3.adaptive.navigation3.rememberListDetailSceneStrategy
+import androidx.compose.runtime.remember
+import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
@@ -13,15 +20,16 @@ import com.doguskytech.officina.navigation.ConfirmDelete
 import com.doguskytech.officina.navigation.NewTask
 import com.doguskytech.officina.navigation.ProjectDetail
 import com.doguskytech.officina.navigation.ProjectList
-import com.doguskytech.officina.scenes.ListDetailSceneStrategy
-import com.doguskytech.officina.scenes.rememberListDetailSceneStrategy
 import com.doguskytech.officina.screens.ConfirmDeleteDialog
 import com.doguskytech.officina.screens.NewTaskScreen
 import com.doguskytech.officina.screens.ProjectDetailScreen
+import com.doguskytech.officina.screens.ProjectDetailPlaceholder
 import com.doguskytech.officina.screens.ProjectListScreen
 import com.doguskytech.officina.ui.theme.OfficinaTheme
 
 class MainActivity : ComponentActivity() {
+
+    @OptIn(ExperimentalMaterial3AdaptiveApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -29,12 +37,18 @@ class MainActivity : ComponentActivity() {
             OfficinaTheme {
                 val backStack = rememberNavBackStack(ProjectList)
 
-                // Strategies são avaliadas em ordem.
-                // Dialog primeiro: se o último entry for diálogo, ele assume.
-                // ListDetail depois: se a janela for larga e houver lista+detalhe, ele assume.
-                // Fallback automático: SinglePaneSceneStrategy (sempre renderiza o último entry).
                 val dialogStrategy = DialogSceneStrategy<NavKey>()
-                val listDetailStrategy = rememberListDetailSceneStrategy<NavKey>()
+
+                // Material Adaptive version — usa WindowAdaptiveInfo internamente.
+                // A diretiva remove o espaçamento horizontal entre painéis (workaround bug b/418201867).
+                val windowAdaptiveInfo = currentWindowAdaptiveInfo()
+                val directive = remember(windowAdaptiveInfo) {
+                    calculatePaneScaffoldDirective(windowAdaptiveInfo)
+                        .copy(horizontalPartitionSpacerSize = 0.dp)
+                }
+                val listDetailStrategy = rememberListDetailSceneStrategy<NavKey>(
+                    directive = directive
+                )
 
                 NavDisplay(
                     backStack = backStack,
@@ -42,21 +56,21 @@ class MainActivity : ComponentActivity() {
                     sceneStrategies = listOf(dialogStrategy, listDetailStrategy),
                     entryProvider = entryProvider<NavKey> {
 
-                        // metadata = ListDetailSceneStrategy.listPane() → marca como painel de lista
                         entry<ProjectList>(
-                            metadata = ListDetailSceneStrategy.listPane()
+                            metadata = ListDetailSceneStrategy.listPane(
+                                // Exibido no painel direito quando nenhum projeto está selecionado.
+                                // Só aparece no tablet/janela larga — no phone não existe painel direito.
+                                detailPlaceholder = { ProjectDetailPlaceholder() }
+                            )
                         ) {
                             ProjectListScreen(
                                 onProjectClick = { route ->
-                                    // No tablet, ao trocar o item selecionado, removemos o detalhe
-                                    // anterior para não acumular entries no back stack.
                                     backStack.removeIf { it is ProjectDetail }
                                     backStack.add(route)
                                 }
                             )
                         }
 
-                        // metadata = ListDetailSceneStrategy.detailPane() → marca como painel de detalhe
                         entry<ProjectDetail>(
                             metadata = ListDetailSceneStrategy.detailPane()
                         ) { route ->

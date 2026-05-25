@@ -2,6 +2,14 @@
 
 Projeto de aprendizagem Android desenvolvido como laboratório prático para dominar as tecnologias modernas do ecossistema Android.
 
+## Módulos
+
+| Módulo | Conteúdo | Commit | Lesson |
+|---|---|---|---|
+| **1** | Navigation3 fundamentos — NavKey, NavEntry, NavDisplay, back stack | [`7c3650a`](../../commit/7c3650a) | [lesson1.md](docs/lesson1.md) |
+| **2** | Scenes — DialogSceneStrategy, ListDetailScene customizada | [`6e9a0c3`](../../commit/6e9a0c3) | [lesson2.md](docs/lesson2.md) |
+| **2.1** | ListDetail com Material Adaptive — detailPlaceholder, extraPane, foldables | [`75d82d8`](../../commit/75d82d8) | [lesson2.1.md](docs/lesson2.1.md) |
+
 ## Tópicos de Aprendizagem
 
 ### Jetpack Compose
@@ -23,7 +31,7 @@ Projeto de aprendizagem Android desenvolvido como laboratório prático para dom
 - `Scene` e `SceneStrategy` — o sistema adaptativo do Nav3
 - `SinglePaneSceneStrategy` — comportamento padrão
 - `DialogSceneStrategy` — destinos como diálogo
-- `ListDetailSceneStrategy` — layout lista-detalhe adaptativo
+- `ListDetailSceneStrategy` — layout lista-detalhe adaptativo (Material Adaptive)
 - `BottomSheetSceneStrategy` — destinos como bottom sheet
 - `SceneDecoratorStrategy` — envolver scenes com UI comum (top bar, nav rail)
 - Metadata em `NavEntry` para comunicação com a Scene pai
@@ -52,5 +60,6 @@ Projeto de aprendizagem Android desenvolvido como laboratório prático para dom
 | Compose BOM | 2026.05.01 |
 | Material3 | 1.5.0-alpha20 |
 | Navigation 3 | 1.1.2 |
+| Material3 Adaptive Nav3 | 1.3.0-beta02 |
 | AGP | 9.2.1 |
-| minSdk | 35 (Android 15) |
+| minSdk | 26 |
