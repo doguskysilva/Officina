@@ -12,6 +12,7 @@ Projeto de aprendizagem Android desenvolvido como laboratório prático para dom
 | **2.2** | extraPane na prática — NewTask como terceiro painel em tablets largos | [`253ed9a`](../../commit/253ed9a) | [lesson2.2.md](docs/lesson2.2.md) |
 | **3** | Scene Decorators — NavigationBar/Rail adaptativo, derived key, OverlayScene | [`48fc407`](../../commit/48fc407) | [lesson3.md](docs/lesson3.md) |
 | **4** | Múltiplos back stacks — histórico por aba, selectedTab explícito | [`d5d5cc9`](../../commit/d5d5cc9) | [lesson4.md](docs/lesson4.md) |
+| **5** | BottomSheetSceneStrategy — OverlayScene customizada com ModalBottomSheet | [`a07c1f1`](../../commit/a07c1f1) | [lesson5.md](docs/lesson5.md) |
 
 ## Tópicos de Aprendizagem
 
@@ -35,7 +36,7 @@ Projeto de aprendizagem Android desenvolvido como laboratório prático para dom
 - ✅ `SinglePaneSceneStrategy` — comportamento padrão
 - ✅ `DialogSceneStrategy` — destinos como diálogo
 - ✅ `ListDetailSceneStrategy` — layout lista-detalhe adaptativo (Material Adaptive)
-- `BottomSheetSceneStrategy` — destinos como bottom sheet
+- ✅ `BottomSheetSceneStrategy` — destinos como bottom sheet
 - ✅ `SceneDecoratorStrategy` — envolver scenes com UI comum (top bar, nav rail)
 - ✅ Metadata em `NavEntry` para comunicação com a Scene pai
 

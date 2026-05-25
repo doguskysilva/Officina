@@ -26,11 +26,15 @@ import com.doguskytech.officina.navigation.ConfirmDelete
 import com.doguskytech.officina.navigation.NewTask
 import com.doguskytech.officina.navigation.ProjectDetail
 import com.doguskytech.officina.navigation.ProjectList
+import com.doguskytech.officina.navigation.SortProjects
 import com.doguskytech.officina.navigation.TaskList
+import com.doguskytech.officina.scenes.BottomSheetSceneStrategy
 import com.doguskytech.officina.scenes.appTabs
+import com.doguskytech.officina.scenes.rememberBottomSheetSceneStrategy
 import com.doguskytech.officina.scenes.rememberNavDecoratorStrategy
 import com.doguskytech.officina.screens.ConfirmDeleteDialog
 import com.doguskytech.officina.screens.NewTaskScreen
+import com.doguskytech.officina.screens.SortProjectsSheet
 import com.doguskytech.officina.screens.ProjectDetailPlaceholder
 import com.doguskytech.officina.screens.ProjectDetailScreen
 import com.doguskytech.officina.screens.ProjectListScreen
@@ -62,6 +66,7 @@ class MainActivity : ComponentActivity() {
                 }
 
                 val dialogStrategy = DialogSceneStrategy<NavKey>()
+                val bottomSheetStrategy = rememberBottomSheetSceneStrategy<NavKey>()
 
                 val windowAdaptiveInfo = currentWindowAdaptiveInfoV2()
                 val directive = remember(windowAdaptiveInfo) {
@@ -92,7 +97,7 @@ class MainActivity : ComponentActivity() {
                 NavDisplay(
                     backStack = activeBackStack,
                     onBack = { activeBackStack.removeLastOrNull() },
-                    sceneStrategies = listOf(dialogStrategy, listDetailStrategy),
+                    sceneStrategies = listOf(dialogStrategy, bottomSheetStrategy, listDetailStrategy),
                     // sceneDecoratorStrategies é aplicado APÓS as sceneStrategies.
                     // Cada decorator recebe a Scene já calculada e a envolve.
                     sceneDecoratorStrategies = listOf(navDecorator),
@@ -105,10 +110,10 @@ class MainActivity : ComponentActivity() {
                         ) {
                             ProjectListScreen(
                                 onProjectClick = { route ->
-                                    // Remove detalhe e nova tarefa do projeto anterior antes de abrir o novo.
                                     activeBackStack.removeIf { it is ProjectDetail || it is NewTask }
                                     activeBackStack.add(route)
-                                }
+                                },
+                                onSortClick = { activeBackStack.add(SortProjects) }
                             )
                         }
 
@@ -134,6 +139,12 @@ class MainActivity : ComponentActivity() {
                                 onBack = { activeBackStack.removeLastOrNull() },
                                 onSave = { activeBackStack.removeLastOrNull() }
                             )
+                        }
+
+                        entry<SortProjects>(
+                            metadata = BottomSheetSceneStrategy.bottomSheet()
+                        ) {
+                            SortProjectsSheet()
                         }
 
                         entry<TaskList> { TaskListScreen() }
