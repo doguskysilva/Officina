@@ -131,7 +131,7 @@ entry<Profile>(
 
 Em janelas muito largas (desktops, tablets grandes em landscape), a biblioteca pode exibir três painéis simultaneamente: lista + detalhe + extra. Em janelas menores, o `extraPane` comporta-se como um entry normal empilhado sobre o detalhe.
 
-O `extraPane` ainda não foi adicionado ao app Officina — será introduzido no Módulo 4 quando adicionarmos perfil de projeto.
+O Módulo 2.2 aplica o `extraPane` à tela `NewTask` do Officina.
 
 ---
 

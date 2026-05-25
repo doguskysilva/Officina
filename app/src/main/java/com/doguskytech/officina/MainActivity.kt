@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
 import androidx.compose.material3.adaptive.layout.calculatePaneScaffoldDirective
 import androidx.compose.material3.adaptive.navigation3.ListDetailSceneStrategy
 import androidx.compose.material3.adaptive.navigation3.rememberListDetailSceneStrategy
@@ -56,7 +57,7 @@ class MainActivity : ComponentActivity() {
 
                 val dialogStrategy = DialogSceneStrategy<NavKey>()
 
-                val windowAdaptiveInfo = currentWindowAdaptiveInfo()
+                val windowAdaptiveInfo = currentWindowAdaptiveInfoV2()
                 val directive = remember(windowAdaptiveInfo) {
                     calculatePaneScaffoldDirective(windowAdaptiveInfo)
                         .copy(horizontalPartitionSpacerSize = 0.dp)
@@ -112,7 +113,11 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        entry<NewTask> { route ->
+                        entry<NewTask>(
+                            // Phone/tablet médio: tela cheia normal
+                            // Tablet largo (expanded): terceiro painel ao lado do detalhe
+                            metadata = ListDetailSceneStrategy.extraPane()
+                        ) { route ->
                             NewTaskScreen(
                                 projectId = route.projectId,
                                 onBack = { backStack.removeLastOrNull() },

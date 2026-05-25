@@ -9,6 +9,7 @@ Projeto de aprendizagem Android desenvolvido como laboratório prático para dom
 | **1** | Navigation3 fundamentos — NavKey, NavEntry, NavDisplay, back stack | [`7c3650a`](../../commit/7c3650a) | [lesson1.md](docs/lesson1.md) |
 | **2** | Scenes — DialogSceneStrategy, ListDetailScene customizada | [`6e9a0c3`](../../commit/6e9a0c3) | [lesson2.md](docs/lesson2.md) |
 | **2.1** | ListDetail com Material Adaptive — detailPlaceholder, extraPane, foldables | [`74e548f`](../../commit/74e548f) | [lesson2.1.md](docs/lesson2.1.md) |
+| **2.2** | extraPane na prática — NewTask como terceiro painel em tablets largos | [`f3d6fcc`](../../commit/f3d6fcc) | [lesson2.2.md](docs/lesson2.2.md) |
 | **3** | Scene Decorators — NavigationBar/Rail adaptativo, derived key, OverlayScene | [`48fc407`](../../commit/48fc407) | [lesson3.md](docs/lesson3.md) |
 
 ## Tópicos de Aprendizagem
