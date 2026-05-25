@@ -116,6 +116,16 @@ Não usamos no Officina, mas é o mecanismo que permite overrides por tela sem a
 
 ---
 
+## SharedTransitionLayout — nota conhecida
+
+A doc oficial recomenda envolver `NavDisplay` em `SharedTransitionLayout` + `sharedTransitionScope = this` para suavizar transições quando o mesmo `NavEntry` aparece em duas `Scene`s durante uma animação (ex: rotação de phone para tablet).
+
+Testamos no Officina e o `NavigationSuiteScaffold` — que renderiza NavigationBar/Rail no mesmo layout que o conteúdo — ficou preso na animação junto, produzindo um efeito indesejado. A causa provável é que `NavigationSuiteScaffold` usa `AnimatedContent` internamente para alternar entre Bar/Rail/Drawer, e o `SharedTransitionScope` interfere nessa transição.
+
+Deixado para revisão quando as novas APIs de animação para layouts adaptativos (Google I/O 2025) forem estáveis.
+
+---
+
 ## Dois níveis de animação
 
 | Nível | Onde | Quando dispara |
