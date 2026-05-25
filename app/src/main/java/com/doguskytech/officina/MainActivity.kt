@@ -16,6 +16,8 @@ import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
 import androidx.compose.material3.adaptive.layout.calculatePaneScaffoldDirective
 import androidx.compose.material3.adaptive.navigation3.ListDetailSceneStrategy
 import androidx.compose.material3.adaptive.navigation3.rememberListDetailSceneStrategy
+import androidx.compose.animation.AnimatedContent
+import com.doguskytech.officina.ui.AnimationConfig
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteItem
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.getValue
@@ -120,6 +122,8 @@ class MainActivity : ComponentActivity() {
                         backStack = activeBackStack,
                         onBack = { activeBackStack.removeLastOrNull() },
                         sceneStrategies = listOf(dialogStrategy, bottomSheetStrategy, listDetailStrategy),
+                        transitionSpec = { AnimationConfig.current.enter },
+                        popTransitionSpec = { AnimationConfig.current.pop },
                         entryProvider = entryProvider<NavKey> {
 
                             entry<ProjectList>(
@@ -152,12 +156,25 @@ class MainActivity : ComponentActivity() {
                                     ProjectDetailViewModel(route.projectId)
                                 }
                                 val uiState by vm.uiState.collectAsStateWithLifecycle()
-                                ProjectDetailScreen(
-                                    uiState = uiState,
-                                    onBack = { activeBackStack.removeLastOrNull() },
-                                    onNewTaskClick = { newTaskRoute -> activeBackStack.add(newTaskRoute) },
-                                    onDeleteClick = { confirmRoute -> activeBackStack.add(confirmRoute) }
-                                )
+                                // No tablet, ListDetailSceneStrategy agrupa ProjectList e ProjectDetail
+                                // na mesma Scene — NavDisplay não anima (sem troca de scene).
+                                // AnimatedContent resolve: anima o painel de detalhe quando o projeto muda.
+                                AnimatedContent(
+                                    targetState = route.projectId,
+                                    transitionSpec = { AnimationConfig.current.enter },
+                                    label = "ProjectDetailTransition",
+                                ) { _ ->
+                                    // `_` intencional: uiState do escopo externo é sempre correto
+                                    // para este projectId (ViewModel keyed por projectId).
+                                    // targetState=projectId anima só na troca de projeto,
+                                    // não em cada update de dado (tarefa adicionada, etc).
+                                    ProjectDetailScreen(
+                                        uiState = uiState,
+                                        onBack = { activeBackStack.removeLastOrNull() },
+                                        onNewTaskClick = { newTaskRoute -> activeBackStack.add(newTaskRoute) },
+                                        onDeleteClick = { confirmRoute -> activeBackStack.add(confirmRoute) }
+                                    )
+                                }
                             }
 
                             entry<NewTask>(

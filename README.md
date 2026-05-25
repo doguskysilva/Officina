@@ -14,7 +14,8 @@ Projeto de aprendizagem Android desenvolvido como laboratório prático para dom
 | **4** | Múltiplos back stacks — histórico por aba, selectedTab explícito | [`d5d5cc9`](../../commit/d5d5cc9) | [lesson4.md](docs/lesson4.md) |
 | **5** | BottomSheetSceneStrategy — OverlayScene customizada com ModalBottomSheet | [`a07c1f1`](../../commit/a07c1f1) | [lesson5.md](docs/lesson5.md) |
 | **6** | NavigationSuiteScaffold — NavBar/Rail/Drawer automático, remove NavDecoratorStrategy | [`8b561d3`](../../commit/8b561d3) | [lesson6.md](docs/lesson6.md) |
-| **7** | ViewModel + StateFlow + UiState selado — fonte única de verdade, reatividade automática | WIP | [lesson7.md](docs/lesson7.md) |
+| **7** | ViewModel + StateFlow + UiState selado — fonte única de verdade, reatividade automática | [`9c8b81a`](../../commit/9c8b81a) | [lesson7.md](docs/lesson7.md) |
+| **8** | Animações de transição — AnimationConfig feature flag, 5 presets, transitionSpec/popTransitionSpec | WIP | [lesson8.md](docs/lesson8.md) |
 
 ## Tópicos de Aprendizagem
 
@@ -31,7 +32,7 @@ Projeto de aprendizagem Android desenvolvido como laboratório prático para dom
 - ✅ `rememberNavBackStack` e persistência de estado
 - ✅ Múltiplos back stacks (navegação por abas)
 - Deep links
-- Animações entre destinos
+- ✅ Animações entre destinos
 
 ### Scenes (Navigation 3)
 - ✅ `Scene` e `SceneStrategy` — o sistema adaptativo do Nav3
