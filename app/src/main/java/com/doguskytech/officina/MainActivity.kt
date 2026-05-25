@@ -5,12 +5,19 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
-import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
 import androidx.compose.material3.adaptive.layout.calculatePaneScaffoldDirective
 import androidx.compose.material3.adaptive.navigation3.ListDetailSceneStrategy
 import androidx.compose.material3.adaptive.navigation3.rememberListDetailSceneStrategy
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteItem
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,16 +36,14 @@ import com.doguskytech.officina.navigation.ProjectList
 import com.doguskytech.officina.navigation.SortProjects
 import com.doguskytech.officina.navigation.TaskList
 import com.doguskytech.officina.scenes.BottomSheetSceneStrategy
-import com.doguskytech.officina.scenes.appTabs
 import com.doguskytech.officina.scenes.rememberBottomSheetSceneStrategy
-import com.doguskytech.officina.scenes.rememberNavDecoratorStrategy
 import com.doguskytech.officina.screens.ConfirmDeleteDialog
 import com.doguskytech.officina.screens.NewTaskScreen
-import com.doguskytech.officina.screens.SortProjectsSheet
 import com.doguskytech.officina.screens.ProjectDetailPlaceholder
 import com.doguskytech.officina.screens.ProjectDetailScreen
 import com.doguskytech.officina.screens.ProjectListScreen
 import com.doguskytech.officina.screens.SettingsScreen
+import com.doguskytech.officina.screens.SortProjectsSheet
 import com.doguskytech.officina.screens.TaskListScreen
 import com.doguskytech.officina.ui.theme.OfficinaTheme
 
@@ -50,15 +55,12 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             OfficinaTheme {
-                // Módulo 4: um back stack por aba — cada aba preserva seu histórico.
                 val projectsBackStack = rememberNavBackStack(ProjectList)
                 val tasksBackStack = rememberNavBackStack(TaskList)
                 val settingsBackStack = rememberNavBackStack(AppSettings)
 
-                // Aba selecionada agora é estado explícito — não precisa mais de derivedStateOf.
                 var selectedTab by remember { mutableStateOf<NavKey>(ProjectList) }
 
-                // Back stack ativo = o da aba selecionada.
                 val activeBackStack = when (selectedTab) {
                     ProjectList -> projectsBackStack
                     TaskList -> tasksBackStack
@@ -77,16 +79,6 @@ class MainActivity : ComponentActivity() {
                     directive = directive
                 )
 
-                // SceneDecoratorStrategy — envolve cada Scene com NavigationBar ou NavigationRail.
-                // A ordem em sceneDecoratorStrategies define a ordem de envolvimento (de dentro para fora).
-                val navDecorator = rememberNavDecoratorStrategy<NavKey>(
-                    selectedTab = selectedTab,
-                    onTabSelected = { route ->
-                        // Módulo 4: só troca a aba — o back stack de cada aba é preservado.
-                        selectedTab = route
-                    }
-                )
-
                 // Fallback para o sistema de back no tablet: quando ListDetailSceneStrategy
                 // agrupa tudo numa única Scene (previousEntries=[]), NavDisplay não habilita
                 // o back nativo — este handler cobre esse caso.
@@ -94,79 +86,101 @@ class MainActivity : ComponentActivity() {
                     activeBackStack.removeLastOrNull()
                 }
 
-                NavDisplay(
-                    backStack = activeBackStack,
-                    onBack = { activeBackStack.removeLastOrNull() },
-                    sceneStrategies = listOf(dialogStrategy, bottomSheetStrategy, listDetailStrategy),
-                    // sceneDecoratorStrategies é aplicado APÓS as sceneStrategies.
-                    // Cada decorator recebe a Scene já calculada e a envolve.
-                    sceneDecoratorStrategies = listOf(navDecorator),
-                    entryProvider = entryProvider<NavKey> {
-
-                        entry<ProjectList>(
-                            metadata = ListDetailSceneStrategy.listPane(
-                                detailPlaceholder = { ProjectDetailPlaceholder() }
-                            )
-                        ) {
-                            ProjectListScreen(
-                                onProjectClick = { route ->
-                                    activeBackStack.removeIf { it is ProjectDetail || it is NewTask }
-                                    activeBackStack.add(route)
-                                },
-                                onSortClick = { activeBackStack.add(SortProjects) }
-                            )
-                        }
-
-                        entry<ProjectDetail>(
-                            metadata = ListDetailSceneStrategy.detailPane()
-                        ) { route ->
-                            ProjectDetailScreen(
-                                projectId = route.projectId,
-                                projectName = route.projectName,
-                                onBack = { activeBackStack.removeLastOrNull() },
-                                onNewTaskClick = { newTaskRoute -> activeBackStack.add(newTaskRoute) },
-                                onDeleteClick = { confirmRoute -> activeBackStack.add(confirmRoute) }
-                            )
-                        }
-
-                        entry<NewTask>(
-                            // Phone/tablet médio: tela cheia normal
-                            // Tablet largo (expanded): terceiro painel ao lado do detalhe
-                            metadata = ListDetailSceneStrategy.extraPane()
-                        ) { route ->
-                            NewTaskScreen(
-                                projectId = route.projectId,
-                                onBack = { activeBackStack.removeLastOrNull() },
-                                onSave = { activeBackStack.removeLastOrNull() }
-                            )
-                        }
-
-                        entry<SortProjects>(
-                            metadata = BottomSheetSceneStrategy.bottomSheet()
-                        ) {
-                            SortProjectsSheet()
-                        }
-
-                        entry<TaskList> { TaskListScreen() }
-
-                        entry<AppSettings> { SettingsScreen() }
-
-                        // OverlayScene — o decorator NÃO é aplicado aqui.
-                        // Diálogos nunca recebem NavigationBar/Rail.
-                        entry<ConfirmDelete>(
-                            metadata = DialogSceneStrategy.dialog()
-                        ) { route ->
-                            ConfirmDeleteDialog(
-                                projectName = route.projectName,
-                                onConfirm = {
-                                    activeBackStack.removeLastOrNull()
-                                    activeBackStack.removeLastOrNull()
-                                },
-                                onDismiss = { activeBackStack.removeLastOrNull() }
-                            )
-                        }
+                // Módulo 6: NavigationSuiteScaffold substitui nosso NavDecoratorStrategy.
+                // Phone → NavigationBar (base), tablet → NavigationRail (lateral),
+                // desktop → NavigationDrawer — tudo automático via WindowAdaptiveInfo.
+                NavigationSuiteScaffold(
+                    navigationItems = {
+                        NavigationSuiteItem(
+                            icon = { Icon(Icons.Default.Build, contentDescription = null) },
+                            label = { Text("Projetos") },
+                            selected = selectedTab == ProjectList,
+                            onClick = { selectedTab = ProjectList },
+                        )
+                        NavigationSuiteItem(
+                            icon = { Icon(Icons.AutoMirrored.Filled.List, contentDescription = null) },
+                            label = { Text("Tarefas") },
+                            selected = selectedTab == TaskList,
+                            onClick = { selectedTab = TaskList },
+                        )
+                        NavigationSuiteItem(
+                            icon = { Icon(Icons.Default.Settings, contentDescription = null) },
+                            label = { Text("Ajustes") },
+                            selected = selectedTab == AppSettings,
+                            onClick = { selectedTab = AppSettings },
+                        )
                     }
-                )
+                ) {
+                    NavDisplay(
+                        backStack = activeBackStack,
+                        onBack = { activeBackStack.removeLastOrNull() },
+                        sceneStrategies = listOf(dialogStrategy, bottomSheetStrategy, listDetailStrategy),
+                        entryProvider = entryProvider<NavKey> {
+
+                            entry<ProjectList>(
+                                metadata = ListDetailSceneStrategy.listPane(
+                                    detailPlaceholder = { ProjectDetailPlaceholder() }
+                                )
+                            ) {
+                                ProjectListScreen(
+                                    onProjectClick = { route ->
+                                        activeBackStack.removeIf { it is ProjectDetail || it is NewTask }
+                                        activeBackStack.add(route)
+                                    },
+                                    onSortClick = { activeBackStack.add(SortProjects) }
+                                )
+                            }
+
+                            entry<ProjectDetail>(
+                                metadata = ListDetailSceneStrategy.detailPane()
+                            ) { route ->
+                                ProjectDetailScreen(
+                                    projectId = route.projectId,
+                                    projectName = route.projectName,
+                                    onBack = { activeBackStack.removeLastOrNull() },
+                                    onNewTaskClick = { newTaskRoute -> activeBackStack.add(newTaskRoute) },
+                                    onDeleteClick = { confirmRoute -> activeBackStack.add(confirmRoute) }
+                                )
+                            }
+
+                            entry<NewTask>(
+                                metadata = ListDetailSceneStrategy.extraPane()
+                            ) { route ->
+                                NewTaskScreen(
+                                    projectId = route.projectId,
+                                    onBack = { activeBackStack.removeLastOrNull() },
+                                    onSave = { activeBackStack.removeLastOrNull() }
+                                )
+                            }
+
+                            entry<SortProjects>(
+                                metadata = BottomSheetSceneStrategy.bottomSheet()
+                            ) {
+                                SortProjectsSheet()
+                            }
+
+                            entry<TaskList> { TaskListScreen() }
+
+                            entry<AppSettings> { SettingsScreen() }
+
+                            // OverlayScene — NavigationSuiteScaffold não envolve diálogos
+                            // (OverlayScene não recebe SceneDecorator, então a NavBar/Rail
+                            //  nunca aparece dentro de Dialog ou BottomSheet).
+                            entry<ConfirmDelete>(
+                                metadata = DialogSceneStrategy.dialog()
+                            ) { route ->
+                                ConfirmDeleteDialog(
+                                    projectName = route.projectName,
+                                    onConfirm = {
+                                        activeBackStack.removeLastOrNull()
+                                        activeBackStack.removeLastOrNull()
+                                    },
+                                    onDismiss = { activeBackStack.removeLastOrNull() }
+                                )
+                            }
+                        }
+                    )
+                }
             }
         }
     }
