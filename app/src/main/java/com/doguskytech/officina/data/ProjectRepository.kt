@@ -41,6 +41,18 @@ object ProjectRepository {
         }
     }
 
+    fun toggleTask(projectId: Int, taskId: Int) {
+        _projects.update { current ->
+            current.map { project ->
+                if (project.id == projectId)
+                    project.copy(tasks = project.tasks.map { task ->
+                        if (task.id == taskId) task.copy(done = !task.done) else task
+                    })
+                else project
+            }
+        }
+    }
+
     fun deleteProject(id: Int) {
         _projects.update { current -> current.filter { it.id != id } }
     }

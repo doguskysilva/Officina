@@ -136,8 +136,12 @@ class MainActivity : ComponentActivity() {
                                 // O ViewModel é destruído quando o entry sai do back stack.
                                 val vm: ProjectListViewModel = viewModel()
                                 val uiState by vm.uiState.collectAsStateWithLifecycle()
+                                val selectedProjectId = activeBackStack
+                                    .filterIsInstance<ProjectDetail>()
+                                    .lastOrNull()?.projectId
                                 ProjectListScreen(
                                     uiState = uiState,
+                                    selectedProjectId = selectedProjectId,
                                     onProjectClick = { route ->
                                         activeBackStack.removeIf { it is ProjectDetail || it is NewTask }
                                         activeBackStack.add(route)
@@ -172,7 +176,8 @@ class MainActivity : ComponentActivity() {
                                         uiState = uiState,
                                         onBack = { activeBackStack.removeLastOrNull() },
                                         onNewTaskClick = { newTaskRoute -> activeBackStack.add(newTaskRoute) },
-                                        onDeleteClick = { confirmRoute -> activeBackStack.add(confirmRoute) }
+                                        onDeleteClick = { confirmRoute -> activeBackStack.add(confirmRoute) },
+                                        onTaskToggle = { taskId -> vm.toggleTask(taskId) }
                                     )
                                 }
                             }

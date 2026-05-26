@@ -8,18 +8,20 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -33,13 +35,14 @@ import com.doguskytech.officina.navigation.ConfirmDelete
 import com.doguskytech.officina.navigation.NewTask
 import com.doguskytech.officina.ui.UiState
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ProjectDetailScreen(
     uiState: UiState<Project>,
     onBack: () -> Unit,
     onNewTaskClick: (NewTask) -> Unit,
     onDeleteClick: (ConfirmDelete) -> Unit,
+    onTaskToggle: (Int) -> Unit,
 ) {
     when (uiState) {
         is UiState.Loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -66,7 +69,6 @@ fun ProjectDetailScreen(
             ) { padding ->
                 LazyColumn(
                     modifier = Modifier.fillMaxSize().padding(padding),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     item {
                         Row(
@@ -98,11 +100,30 @@ fun ProjectDetailScreen(
                             }
                         }
                     } else {
-                        items(project.tasks, key = { it.id }) { task ->
-                            ListItem(
-                                headlineContent = { Text(task.title) },
-                                supportingContent = { Text(if (task.done) "Concluída" else "Em andamento") }
-                            )
+                        item {
+                            // SegmentedListItem: visual de grupo onde o primeiro item tem cantos
+                            // arredondados no topo, o último na base, e os do meio são retos.
+                            // selected = task.done: itens concluídos ficam destacados.
+                            val colors =
+                                ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 12.dp)
+                                    .selectableGroup(),
+                                verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
+                            ) {
+                                project.tasks.forEachIndexed { index, task ->
+                                    SegmentedListItem(
+                                        selected = task.done,
+                                        onClick = { onTaskToggle(task.id) },
+                                        shapes = ListItemDefaults.segmentedShapes(index, project.tasks.size),
+                                        colors = colors,
+                                        modifier = Modifier.fillMaxWidth(),
+                                    ) { Text(task.title) }
+                                }
+                            }
                         }
                     }
 
