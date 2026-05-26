@@ -131,6 +131,26 @@ Diferenciais do `LargeFlexibleTopAppBar` vs `LargeTopAppBar`:
 
 ---
 
+## TopAppBar com subtitle (overload Expressive)
+
+O `TopAppBar` ganhou um segundo overload `@ExperimentalMaterial3ExpressiveApi` que aceita `subtitle` como parâmetro não-nulável. O compilador escolhe este overload automaticamente quando `subtitle` é passado — sem nenhuma anotação extra além do `@OptIn` já existente:
+
+```kotlin
+// Overload padrão (sem subtitle)
+TopAppBar(title = { Text("Nome") }, navigationIcon = { ... })
+
+// Overload Expressive (com subtitle) — selecionado pelo 2º parâmetro não-nulável
+TopAppBar(
+    title    = { Text(project.name) },
+    subtitle = { Text("${project.tasks.size} tarefas") },
+    navigationIcon = { ... },
+)
+```
+
+Usado em `ProjectDetailScreen` para mostrar o total de tarefas do projeto diretamente na barra.
+
+---
+
 ## Arquivos criados/modificados
 
 ```
@@ -143,7 +163,7 @@ viewmodel/
 screens/
 ├── TaskListScreen.kt               ← novo — AppBarWithSearch + ExpandedDockedSearchBarWithGap
 ├── ProjectListScreen.kt            ← LargeFlexibleTopAppBar, "Officina"
-└── ProjectDetailScreen.kt          ← highlightTaskId, LaunchedEffect scroll, selected OR highlight
+└── ProjectDetailScreen.kt          ← highlightTaskId, LaunchedEffect scroll, selected OR highlight, TopAppBar subtitle
 
 navigation/
 └── Routes.kt                       ← ProjectDetail.highlightTaskId: Int? = null
