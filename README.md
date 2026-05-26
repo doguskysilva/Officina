@@ -17,7 +17,7 @@ Projeto de aprendizagem Android desenvolvido como laboratório prático para dom
 | **7** | ViewModel + StateFlow + UiState selado — fonte única de verdade, reatividade automática | [`9c8b81a`](../../commit/9c8b81a) | [lesson7.md](docs/lesson7.md) |
 | **8** | Animações de transição — AnimationConfig feature flag, 5 presets, transitionSpec/popTransitionSpec | WIP | [lesson8.md](docs/lesson8.md) |
 | **9** | Material3 Expressive — ListItem(selected), SegmentedListItem, toggleTask | [`44c0178`](../../commit/44c0178) | [lesson9.md](docs/lesson9.md) |
-| **10** | AppBarWithSearch + ExpandedDockedSearchBarWithGap + LargeFlexibleTopAppBar | WIP | [lesson10.md](docs/lesson10.md) |
+| **10** | AppBarWithSearch + ExpandedDockedSearchBarWithGap + LargeFlexibleTopAppBar | [`00d91a9`](../../commit/00d91a9) | [lesson10.md](docs/lesson10.md) |
 
 ## Tópicos de Aprendizagem
 
