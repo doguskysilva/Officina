@@ -8,7 +8,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
@@ -43,6 +45,7 @@ fun ProjectDetailScreen(
     onNewTaskClick: (NewTask) -> Unit,
     onDeleteClick: (ConfirmDelete) -> Unit,
     onTaskToggle: (Int) -> Unit,
+    highlightTaskId: Int? = null,
 ) {
     when (uiState) {
         is UiState.Loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -55,6 +58,10 @@ fun ProjectDetailScreen(
 
         is UiState.Success -> {
             val project = uiState.data
+            val lazyListState = rememberLazyListState()
+            LaunchedEffect(highlightTaskId) {
+                if (highlightTaskId != null) lazyListState.animateScrollToItem(1)
+            }
             Scaffold(
                 topBar = {
                     TopAppBar(
@@ -68,6 +75,7 @@ fun ProjectDetailScreen(
                 }
             ) { padding ->
                 LazyColumn(
+                    state = lazyListState,
                     modifier = Modifier.fillMaxSize().padding(padding),
                 ) {
                     item {
@@ -116,7 +124,7 @@ fun ProjectDetailScreen(
                             ) {
                                 project.tasks.forEachIndexed { index, task ->
                                     SegmentedListItem(
-                                        selected = task.done,
+                                        selected = task.done || task.id == highlightTaskId,
                                         onClick = { onTaskToggle(task.id) },
                                         shapes = ListItemDefaults.segmentedShapes(index, project.tasks.size),
                                         colors = colors,

@@ -9,7 +9,11 @@ data object ProjectList : NavKey
 
 // data class → rota com argumentos (type-safe, sem strings)
 @Serializable
-data class ProjectDetail(val projectId: Int, val projectName: String) : NavKey
+data class ProjectDetail(
+    val projectId: Int,
+    val projectName: String,
+    val highlightTaskId: Int? = null,
+) : NavKey
 
 @Serializable
 data class NewTask(val projectId: Int) : NavKey

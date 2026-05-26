@@ -53,6 +53,7 @@ import com.doguskytech.officina.screens.TaskListScreen
 import com.doguskytech.officina.ui.theme.OfficinaTheme
 import com.doguskytech.officina.viewmodel.ProjectDetailViewModel
 import com.doguskytech.officina.viewmodel.ProjectListViewModel
+import com.doguskytech.officina.viewmodel.TaskListViewModel
 
 class MainActivity : ComponentActivity() {
 
@@ -177,7 +178,8 @@ class MainActivity : ComponentActivity() {
                                         onBack = { activeBackStack.removeLastOrNull() },
                                         onNewTaskClick = { newTaskRoute -> activeBackStack.add(newTaskRoute) },
                                         onDeleteClick = { confirmRoute -> activeBackStack.add(confirmRoute) },
-                                        onTaskToggle = { taskId -> vm.toggleTask(taskId) }
+                                        onTaskToggle = { taskId -> vm.toggleTask(taskId) },
+                                        highlightTaskId = route.highlightTaskId,
                                     )
                                 }
                             }
@@ -201,7 +203,18 @@ class MainActivity : ComponentActivity() {
                                 SortProjectsSheet()
                             }
 
-                            entry<TaskList> { TaskListScreen() }
+                            entry<TaskList> {
+                                val vm: TaskListViewModel = viewModel()
+                                val uiState by vm.uiState.collectAsStateWithLifecycle()
+                                TaskListScreen(
+                                    uiState = uiState,
+                                    onTaskClick = { projectId, projectName, taskId ->
+                                        selectedTab = ProjectList
+                                        projectsBackStack.removeIf { it is ProjectDetail || it is NewTask }
+                                        projectsBackStack.add(ProjectDetail(projectId, projectName, highlightTaskId = taskId))
+                                    }
+                                )
+                            }
 
                             entry<AppSettings> { SettingsScreen() }
 

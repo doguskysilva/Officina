@@ -18,12 +18,14 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.dropUnlessResumed
 import com.doguskytech.officina.data.Project
@@ -38,15 +40,21 @@ fun ProjectListScreen(
     onProjectClick: (ProjectDetail) -> Unit,
     onSortClick: () -> Unit,
 ) {
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            TopAppBar(
-                title = { Text("Oficina") },
+            LargeFlexibleTopAppBar(
+                title = { Text("Officina") },
+                subtitle = if (uiState is UiState.Success) {
+                    { Text("${uiState.data.size} projetos") }
+                } else null,
                 actions = {
                     IconButton(onClick = dropUnlessResumed { onSortClick() }) {
                         Icon(Icons.AutoMirrored.Filled.Sort, contentDescription = "Ordenar")
                     }
-                }
+                },
+                scrollBehavior = scrollBehavior,
             )
         }
     ) { padding ->
