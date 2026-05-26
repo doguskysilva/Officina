@@ -179,6 +179,7 @@ class MainActivity : ComponentActivity() {
                                         onNewTaskClick = { newTaskRoute -> activeBackStack.add(newTaskRoute) },
                                         onDeleteClick = { confirmRoute -> activeBackStack.add(confirmRoute) },
                                         onTaskToggle = { taskId -> vm.toggleTask(taskId) },
+                                        onMarkAllDone = { vm.markAllTasksDone() },
                                         highlightTaskId = route.highlightTaskId,
                                     )
                                 }

@@ -26,5 +26,7 @@ class ProjectDetailViewModel(private val projectId: Int) : ViewModel() {
 
     fun toggleTask(taskId: Int) = ProjectRepository.toggleTask(projectId, taskId)
 
+    fun markAllTasksDone() = ProjectRepository.markAllTasksDone(projectId)
+
     fun deleteProject() = ProjectRepository.deleteProject(projectId)
 }

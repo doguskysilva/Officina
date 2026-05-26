@@ -3,21 +3,23 @@ package com.doguskytech.officina.screens
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Button
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.FloatingToolbarDefaults
+import androidx.compose.material3.FloatingToolbarDefaults.floatingToolbarVerticalNestedScroll
+import androidx.compose.material3.HorizontalFloatingToolbar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItemDefaults
@@ -25,11 +27,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.dropUnlessResumed
 import com.doguskytech.officina.data.Project
@@ -45,6 +52,7 @@ fun ProjectDetailScreen(
     onNewTaskClick: (NewTask) -> Unit,
     onDeleteClick: (ConfirmDelete) -> Unit,
     onTaskToggle: (Int) -> Unit,
+    onMarkAllDone: () -> Unit,
     highlightTaskId: Int? = null,
 ) {
     when (uiState) {
@@ -59,9 +67,12 @@ fun ProjectDetailScreen(
         is UiState.Success -> {
             val project = uiState.data
             val lazyListState = rememberLazyListState()
+            var toolbarExpanded by rememberSaveable { mutableStateOf(true) }
+
             LaunchedEffect(highlightTaskId) {
                 if (highlightTaskId != null) lazyListState.animateScrollToItem(1)
             }
+
             Scaffold(
                 topBar = {
                     TopAppBar(
@@ -73,32 +84,52 @@ fun ProjectDetailScreen(
                             }
                         },
                     )
-                }
+                },
+                floatingActionButton = {
+                    HorizontalFloatingToolbar(
+                        expanded = toolbarExpanded,
+                        floatingActionButton = {
+                            FloatingToolbarDefaults.VibrantFloatingActionButton(
+                                onClick = dropUnlessResumed {
+                                    onNewTaskClick(NewTask(projectId = project.id))
+                                }
+                            ) {
+                                Icon(Icons.Default.Add, contentDescription = "Nova tarefa")
+                            }
+                        },
+                        colors = FloatingToolbarDefaults.vibrantFloatingToolbarColors(),
+                    ) {
+                        IconButton(
+                            onClick = { onMarkAllDone() },
+                            modifier = Modifier.focusProperties { canFocus = toolbarExpanded },
+                        ) { Icon(Icons.Default.Done, contentDescription = "Marcar todas concluídas") }
+
+                        IconButton(
+                            onClick = dropUnlessResumed {
+                                onDeleteClick(ConfirmDelete(project.id, project.name))
+                            },
+                            modifier = Modifier.focusProperties { canFocus = toolbarExpanded },
+                        ) { Icon(Icons.Default.Delete, contentDescription = "Excluir projeto") }
+                    }
+                },
             ) { padding ->
                 LazyColumn(
                     state = lazyListState,
-                    modifier = Modifier.fillMaxSize().padding(padding),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding)
+                        .floatingToolbarVerticalNestedScroll(
+                            expanded = toolbarExpanded,
+                            onExpand = { toolbarExpanded = true },
+                            onCollapse = { toolbarExpanded = false },
+                        ),
                 ) {
-                    item {
-                        Row(
-                            modifier = Modifier.fillMaxWidth().padding(16.dp, 12.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Text("${project.tasks.size} tarefas", style = MaterialTheme.typography.labelLarge)
-                            Button(onClick = dropUnlessResumed {
-                                onNewTaskClick(NewTask(projectId = project.id))
-                            }) {
-                                Text("+ Nova Tarefa")
-                            }
-                        }
-                        HorizontalDivider()
-                    }
-
                     if (project.tasks.isEmpty()) {
                         item {
                             Box(
-                                modifier = Modifier.fillMaxWidth().padding(32.dp),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(32.dp),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
@@ -110,12 +141,8 @@ fun ProjectDetailScreen(
                         }
                     } else {
                         item {
-                            // SegmentedListItem: visual de grupo onde o primeiro item tem cantos
-                            // arredondados no topo, o último na base, e os do meio são retos.
-                            // selected = task.done: itens concluídos ficam destacados.
                             val colors =
                                 ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
-
                             Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -132,20 +159,6 @@ fun ProjectDetailScreen(
                                         modifier = Modifier.fillMaxWidth(),
                                     ) { Text(task.title) }
                                 }
-                            }
-                        }
-                    }
-
-                    item {
-                        HorizontalDivider(modifier = Modifier.padding(top = 8.dp))
-                        Column(
-                            modifier = Modifier.fillMaxWidth().padding(16.dp),
-                            horizontalAlignment = Alignment.End,
-                        ) {
-                            TextButton(onClick = dropUnlessResumed {
-                                onDeleteClick(ConfirmDelete(project.id, project.name))
-                            }) {
-                                Text("Excluir projeto", color = MaterialTheme.colorScheme.error)
                             }
                         }
                     }
