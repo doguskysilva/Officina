@@ -66,11 +66,12 @@ fun ProjectDetailScreen(
                 topBar = {
                     TopAppBar(
                         title = { Text(project.name) },
+                        subtitle = { Text("${project.tasks.size} tarefas") },
                         navigationIcon = {
                             IconButton(onClick = dropUnlessResumed(block = onBack)) {
                                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
                             }
-                        }
+                        },
                     )
                 }
             ) { padding ->
