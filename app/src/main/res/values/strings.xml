@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">Officina</string>
+    <string name="summary_widget_label">Officina — Resumo</string>
+    <string name="summary_widget_description">Exibe o total de projetos e tarefas pendentes</string>
+    <string name="project_list_widget_label">Officina — Projetos</string>
+    <string name="project_list_widget_description">Lista de projetos com progresso de tarefas</string>
+    <string name="project_tasks_widget_label">Officina — Tarefas</string>
+    <string name="project_tasks_widget_description">Tarefas de um projeto específico com toggle direto do widget</string>
 </resources>

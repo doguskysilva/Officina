@@ -19,7 +19,7 @@ Projeto de aprendizagem Android desenvolvido como laboratório prático para dom
 | **9** | Material3 Expressive — ListItem(selected), SegmentedListItem, toggleTask | [`44c0178`](../../commit/44c0178) | [lesson9.md](docs/lesson9.md) |
 | **10** | AppBarWithSearch + ExpandedDockedSearchBarWithGap + LargeFlexibleTopAppBar | [`00d91a9`](../../commit/00d91a9) | [lesson10.md](docs/lesson10.md) |
 | **11** | HorizontalFloatingToolbar — FAB slot com ações contextuais, floatingToolbarVerticalNestedScroll | WIP | [lesson11.md](docs/lesson11.md) |
-| **12** | Glance Widgets — Resumo geral, lista de tarefas pendentes, projeto configurável | WIP | [plano](docs/glance/00-plan.md) |
+| **12** | Glance Widgets — SizeMode, GlanceTheme, LazyColumn, LinearProgressIndicator, ActionCallback, ConfigActivity | WIP | [lesson12.md](docs/lesson12.md) |
 
 ## Tópicos de Aprendizagem
 

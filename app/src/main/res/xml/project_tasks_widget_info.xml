@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:targetCellWidth="2"
+    android:targetCellHeight="3"
+    android:minWidth="180dp"
+    android:minHeight="180dp"
+    android:maxResizeWidth="400dp"
+    android:maxResizeHeight="600dp"
+    android:updatePeriodMillis="1800000"
+    android:configure="com.doguskytech.officina.widget.ProjectTasksConfigActivity"
+    android:description="@string/project_tasks_widget_description"
+    android:initialLayout="@layout/glance_default_loading_layout"
+    android:resizeMode="horizontal|vertical"
+    android:widgetCategory="home_screen" />

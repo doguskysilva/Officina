@@ -61,9 +61,22 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        val deepLinkProjectId = intent.getIntExtra("project_id", -1).takeIf { it != -1 }
+        val deepLinkProjectName = intent.getStringExtra("project_name")
+
         setContent {
             OfficinaTheme {
-                val projectsBackStack = rememberNavBackStack(ProjectList)
+                val projectsInitialStack: Array<NavKey> = if (
+                    savedInstanceState == null &&
+                    deepLinkProjectId != null &&
+                    deepLinkProjectName != null
+                ) {
+                    arrayOf(ProjectList, ProjectDetail(deepLinkProjectId, deepLinkProjectName))
+                } else {
+                    arrayOf(ProjectList)
+                }
+                val projectsBackStack = rememberNavBackStack(*projectsInitialStack)
                 val tasksBackStack = rememberNavBackStack(TaskList)
                 val settingsBackStack = rememberNavBackStack(AppSettings)
 

@@ -11,19 +11,33 @@ object ProjectRepository {
         listOf(
             Project(
                 id = 1, name = "App Mobile",
-                tasks = listOf(Task(1, "Tela de login"), Task(2, "Tela home"), Task(3, "Integração OAuth"))
+                tasks = listOf(
+                    Task(1, "Tela de login", done = true),
+                    Task(2, "Tela home", done = true),
+                    Task(3, "Integração OAuth"),
+                )
             ),
             Project(
                 id = 2, name = "API Backend",
-                tasks = listOf(Task(4, "Endpoints de auth"), Task(5, "CRUD de projetos"))
+                tasks = listOf(
+                    Task(4, "Endpoints de auth", done = true),
+                    Task(5, "CRUD de projetos"),
+                )
             ),
             Project(
                 id = 3, name = "Design System",
-                tasks = listOf(Task(6, "Tokens de cor"), Task(7, "Componente Button"), Task(8, "Componente Card"))
+                tasks = listOf(
+                    Task(6, "Tokens de cor", done = true),
+                    Task(7, "Componente Button", done = true),
+                    Task(8, "Componente Card", done = true),
+                )
             ),
             Project(
                 id = 4, name = "Documentação",
-                tasks = listOf(Task(9, "README geral"), Task(10, "Guia de contribuição"))
+                tasks = listOf(
+                    Task(9, "README geral"),
+                    Task(10, "Guia de contribuição"),
+                )
             ),
         )
     )
