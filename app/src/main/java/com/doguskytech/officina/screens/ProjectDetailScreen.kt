@@ -1,19 +1,34 @@
 package com.doguskytech.officina.screens
 
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.DeleteSweep
+import androidx.compose.material.icons.filled.DoneAll
+import androidx.compose.material.icons.filled.Flag
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -22,29 +37,44 @@ import androidx.compose.material3.FloatingToolbarDefaults.floatingToolbarVertica
 import androidx.compose.material3.HorizontalFloatingToolbar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.dropUnlessResumed
+import com.doguskytech.officina.data.Priority
 import com.doguskytech.officina.data.Project
 import com.doguskytech.officina.navigation.ConfirmDelete
 import com.doguskytech.officina.navigation.NewTask
 import com.doguskytech.officina.ui.UiState
+
+@Composable
+private fun priorityColor(priority: Priority): Color = when (priority) {
+    Priority.LOW    -> MaterialTheme.colorScheme.tertiary
+    Priority.MEDIUM -> MaterialTheme.colorScheme.primary
+    Priority.HIGH   -> MaterialTheme.colorScheme.error
+}
+
+private val enterTransition = fadeIn() + scaleIn(initialScale = 0.85f)
+private val exitTransition  = fadeOut() + scaleOut(targetScale = 0.85f)
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -54,8 +84,9 @@ fun ProjectDetailScreen(
     onBack: () -> Unit,
     onNewTaskClick: (NewTask) -> Unit,
     onDeleteClick: (ConfirmDelete) -> Unit,
-    onTaskToggle: (Int) -> Unit,
     onMarkAllDone: () -> Unit,
+    onCompleteTasks: (Set<Int>) -> Unit,
+    onDeleteTasks: (Set<Int>) -> Unit,
     highlightTaskId: Int? = null,
 ) {
     when (uiState) {
@@ -72,9 +103,35 @@ fun ProjectDetailScreen(
             val lazyListState = rememberLazyListState()
             var toolbarExpanded by rememberSaveable { mutableStateOf(true) }
             val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+            var selectedTaskIds by remember { mutableStateOf(emptySet<Int>()) }
+            val isInSelectionMode = selectedTaskIds.isNotEmpty()
+            var showMarkAllConfirm by remember { mutableStateOf(false) }
+
+            BackHandler(enabled = isInSelectionMode) { selectedTaskIds = emptySet() }
 
             LaunchedEffect(highlightTaskId) {
                 if (highlightTaskId != null) lazyListState.animateScrollToItem(1)
+            }
+
+            if (showMarkAllConfirm) {
+                val pending = project.tasks.count { !it.done }
+                AlertDialog(
+                    onDismissRequest = { showMarkAllConfirm = false },
+                    title = { Text("Concluir todas as tarefas?") },
+                    text = {
+                        Text(
+                            "$pending ${if (pending == 1) "tarefa pendente será marcada" else "tarefas pendentes serão marcadas"} como concluída${if (pending != 1) "s" else ""}."
+                        )
+                    },
+                    confirmButton = {
+                        TextButton(onClick = { onMarkAllDone(); showMarkAllConfirm = false }) {
+                            Text("Confirmar")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showMarkAllConfirm = false }) { Text("Cancelar") }
+                    },
+                )
             }
 
             Scaffold(
@@ -82,7 +139,12 @@ fun ProjectDetailScreen(
                 topBar = {
                     LargeFlexibleTopAppBar(
                         title = { Text(project.name) },
-                        subtitle = { Text("${project.tasks.size} tarefas") },
+                        subtitle = {
+                            if (isInSelectionMode)
+                                Text("${selectedTaskIds.size} selecionada${if (selectedTaskIds.size != 1) "s" else ""}")
+                            else
+                                Text("${project.tasks.size} tarefas")
+                        },
                         scrollBehavior = scrollBehavior,
                         navigationIcon = {
                             if (showBackButton) {
@@ -99,6 +161,7 @@ fun ProjectDetailScreen(
                         floatingActionButton = {
                             FloatingToolbarDefaults.VibrantFloatingActionButton(
                                 onClick = dropUnlessResumed {
+                                    selectedTaskIds = emptySet()
                                     onNewTaskClick(NewTask(projectId = project.id))
                                 }
                             ) {
@@ -107,17 +170,50 @@ fun ProjectDetailScreen(
                         },
                         colors = FloatingToolbarDefaults.vibrantFloatingToolbarColors(),
                     ) {
-                        IconButton(
-                            onClick = { onMarkAllDone() },
-                            modifier = Modifier.focusProperties { canFocus = toolbarExpanded },
-                        ) { Icon(Icons.Default.Done, contentDescription = "Marcar todas concluídas") }
-
-                        IconButton(
-                            onClick = dropUnlessResumed {
-                                onDeleteClick(ConfirmDelete(project.id, project.name))
-                            },
-                            modifier = Modifier.focusProperties { canFocus = toolbarExpanded },
-                        ) { Icon(Icons.Default.Delete, contentDescription = "Excluir projeto") }
+                        // Animação ao trocar entre modo normal e modo de seleção
+                        AnimatedContent(
+                            targetState = isInSelectionMode,
+                            transitionSpec = { enterTransition togetherWith exitTransition },
+                            label = "toolbarActions",
+                        ) { inSelection ->
+                            Row {
+                                if (inSelection) {
+                                    IconButton(
+                                        onClick = {
+                                            onCompleteTasks(selectedTaskIds)
+                                            selectedTaskIds = emptySet()
+                                        },
+                                        modifier = Modifier.focusProperties { canFocus = toolbarExpanded },
+                                    ) {
+                                        Icon(Icons.Filled.CheckCircle, contentDescription = "Concluir selecionadas")
+                                    }
+                                    IconButton(
+                                        onClick = {
+                                            onDeleteTasks(selectedTaskIds)
+                                            selectedTaskIds = emptySet()
+                                        },
+                                        modifier = Modifier.focusProperties { canFocus = toolbarExpanded },
+                                    ) {
+                                        Icon(Icons.Filled.DeleteSweep, contentDescription = "Remover selecionadas")
+                                    }
+                                } else {
+                                    IconButton(
+                                        onClick = { showMarkAllConfirm = true },
+                                        modifier = Modifier.focusProperties { canFocus = toolbarExpanded },
+                                    ) {
+                                        Icon(Icons.Filled.DoneAll, contentDescription = "Concluir todas")
+                                    }
+                                    IconButton(
+                                        onClick = dropUnlessResumed {
+                                            onDeleteClick(ConfirmDelete(project.id, project.name))
+                                        },
+                                        modifier = Modifier.focusProperties { canFocus = toolbarExpanded },
+                                    ) {
+                                        Icon(Icons.Default.Delete, contentDescription = "Excluir projeto")
+                                    }
+                                }
+                            }
+                        }
                     }
                 },
             ) { padding ->
@@ -135,35 +231,68 @@ fun ProjectDetailScreen(
                     if (project.tasks.isEmpty()) {
                         item {
                             Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(32.dp),
-                                contentAlignment = Alignment.Center
+                                modifier = Modifier.fillMaxWidth().padding(32.dp),
+                                contentAlignment = Alignment.Center,
                             ) {
                                 Text(
                                     "Nenhuma tarefa ainda.",
                                     style = MaterialTheme.typography.bodyLarge,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
                         }
                     } else {
                         item {
-                            val colors =
-                                ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+                            val itemColors = ListItemDefaults.colors(
+                                containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                            )
                             Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 16.dp, vertical = 12.dp)
-                                    .selectableGroup(),
+                                    .padding(horizontal = 16.dp, vertical = 12.dp),
                                 verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
                             ) {
                                 project.tasks.forEachIndexed { index, task ->
                                     SegmentedListItem(
-                                        selected = task.done || task.id == highlightTaskId,
-                                        onClick = { onTaskToggle(task.id) },
+                                        selected = task.id in selectedTaskIds,
+                                        onClick = {
+                                            selectedTaskIds =
+                                                if (task.id in selectedTaskIds) selectedTaskIds - task.id
+                                                else selectedTaskIds + task.id
+                                        },
                                         shapes = ListItemDefaults.segmentedShapes(index, project.tasks.size),
-                                        colors = colors,
+                                        colors = itemColors,
+                                        trailingContent = {
+                                            // Animação ao concluir a task: círculo de prioridade → ícone de check
+                                            AnimatedContent(
+                                                targetState = task.done,
+                                                transitionSpec = { enterTransition togetherWith exitTransition },
+                                                label = "taskIcon_${task.id}",
+                                            ) { isDone ->
+                                                if (isDone) {
+                                                    Icon(
+                                                        Icons.Default.Check,
+                                                        contentDescription = null,
+                                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                    )
+                                                } else {
+                                                    Box(
+                                                        modifier = Modifier
+                                                            .size(28.dp)
+                                                            .clip(CircleShape)
+                                                            .background(priorityColor(task.priority)),
+                                                        contentAlignment = Alignment.Center,
+                                                    ) {
+                                                        Icon(
+                                                            Icons.Filled.Flag,
+                                                            contentDescription = null,
+                                                            tint = MaterialTheme.colorScheme.surface,
+                                                            modifier = Modifier.size(14.dp),
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                        },
                                         modifier = Modifier.fillMaxWidth(),
                                     ) { Text(task.title) }
                                 }

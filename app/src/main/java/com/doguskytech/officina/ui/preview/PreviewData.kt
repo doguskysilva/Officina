@@ -1,6 +1,7 @@
 package com.doguskytech.officina.ui.preview
 
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
+import com.doguskytech.officina.data.Priority
 import com.doguskytech.officina.data.Project
 import com.doguskytech.officina.data.Task
 import com.doguskytech.officina.data.TaskWithProject
@@ -12,31 +13,37 @@ val fakeProjects = listOf(
     Project(
         id = 1, name = "App Mobile",
         tasks = listOf(
-            Task(1, "Tela de login", done = true),
-            Task(2, "Tela home", done = true),
-            Task(3, "Integração OAuth"),
+            Task(1, "Tela de login",       done = true, priority = Priority.HIGH),
+            Task(2, "Tela home",           done = true, priority = Priority.HIGH),
+            Task(3, "Integração OAuth",                 priority = Priority.HIGH),
+            Task(4, "Push notifications",               priority = Priority.MEDIUM),
+            Task(5, "Deep links",                       priority = Priority.LOW),
         )
     ),
     Project(
         id = 2, name = "API Backend",
         tasks = listOf(
-            Task(4, "Endpoints de auth", done = true),
-            Task(5, "CRUD de projetos"),
+            Task(6, "Endpoints de auth",  done = true, priority = Priority.HIGH),
+            Task(7, "CRUD de projetos",                priority = Priority.HIGH),
+            Task(8, "Rate limiting",                   priority = Priority.MEDIUM),
+            Task(9, "Documentação OpenAPI",            priority = Priority.LOW),
         )
     ),
     Project(
         id = 3, name = "Design System",
         tasks = listOf(
-            Task(6, "Tokens de cor", done = true),
-            Task(7, "Componente Button", done = true),
-            Task(8, "Componente Card", done = true),
+            Task(10, "Tokens de cor",       done = true, priority = Priority.HIGH),
+            Task(11, "Componente Button",   done = true, priority = Priority.HIGH),
+            Task(12, "Componente Card",     done = true, priority = Priority.MEDIUM),
+            Task(13, "Componente TextField",            priority = Priority.MEDIUM),
+            Task(14, "Dark mode",                       priority = Priority.LOW),
         )
     ),
     Project(
         id = 4, name = "Documentação",
         tasks = listOf(
-            Task(9, "README geral"),
-            Task(10, "Guia de contribuição"),
+            Task(15, "README geral",                    priority = Priority.MEDIUM),
+            Task(16, "Guia de contribuição",            priority = Priority.LOW),
         )
     ),
 )
@@ -44,9 +51,9 @@ val fakeProjects = listOf(
 val fakeProjectAllDone = Project(
     id = 3, name = "Design System",
     tasks = listOf(
-        Task(6, "Tokens de cor", done = true),
-        Task(7, "Componente Button", done = true),
-        Task(8, "Componente Card", done = true),
+        Task(10, "Tokens de cor",     done = true, priority = Priority.HIGH),
+        Task(11, "Componente Button", done = true, priority = Priority.HIGH),
+        Task(12, "Componente Card",   done = true, priority = Priority.MEDIUM),
     )
 )
 

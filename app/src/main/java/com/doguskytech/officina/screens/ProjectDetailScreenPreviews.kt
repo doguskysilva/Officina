@@ -24,8 +24,9 @@ private fun ProjectDetailScreenPreview(
             onBack = {},
             onNewTaskClick = {},
             onDeleteClick = {},
-            onTaskToggle = {},
             onMarkAllDone = {},
+            onCompleteTasks = {},
+            onDeleteTasks = {},
         )
     }
 }
@@ -40,8 +41,9 @@ private fun ProjectDetailScreenDynamicColorsPreview() {
             onBack = {},
             onNewTaskClick = {},
             onDeleteClick = {},
-            onTaskToggle = {},
             onMarkAllDone = {},
+            onCompleteTasks = {},
+            onDeleteTasks = {},
         )
     }
 }
@@ -57,8 +59,9 @@ private fun ProjectDetailScreenNoBackButtonPreview() {
             onBack = {},
             onNewTaskClick = {},
             onDeleteClick = {},
-            onTaskToggle = {},
             onMarkAllDone = {},
+            onCompleteTasks = {},
+            onDeleteTasks = {},
         )
     }
 }
@@ -73,8 +76,9 @@ private fun ProjectDetailScreenDevicesPreview() {
             onBack = {},
             onNewTaskClick = {},
             onDeleteClick = {},
-            onTaskToggle = {},
             onMarkAllDone = {},
+            onCompleteTasks = {},
+            onDeleteTasks = {},
         )
     }
 }

@@ -2,18 +2,26 @@ package com.doguskytech.officina.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Button
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonGroupDefaults
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -21,54 +29,135 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.dropUnlessResumed
+import com.doguskytech.officina.data.Priority
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun NewTaskFormContent(
+    title: String,
+    onTitleChange: (String) -> Unit,
+    priority: Priority,
+    onPriorityChange: (Priority) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        OutlinedTextField(
+            value = title,
+            onValueChange = onTitleChange,
+            label = { Text("Nome da tarefa") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+        )
+        // Connected button group: leading/middle/trailing shapes criam bordas compartilhadas
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
+        ) {
+            Priority.entries.forEachIndexed { index, p ->
+                ToggleButton(
+                    checked = p == priority,
+                    onCheckedChange = { if (it) onPriorityChange(p) },
+                    shapes = when (index) {
+                        0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                        Priority.entries.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                        else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                    },
+                    modifier = Modifier
+                        .weight(1f)
+                        .semantics { role = Role.RadioButton },
+                ) {
+                    Text(p.label)
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun NewTaskScreen(
     projectId: Int,
     onBack: () -> Unit,
-    onSave: (String) -> Unit,
+    onSave: (title: String, priority: Priority) -> Unit,
 ) {
-    // rememberSaveable → sobrevive a rotação de tela (igual ao rememberNavBackStack)
-    var taskName by rememberSaveable { mutableStateOf("") }
+    var title by rememberSaveable { mutableStateOf("") }
+    var priority by rememberSaveable { mutableStateOf(Priority.MEDIUM) }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Nova Tarefa") },
+                title = { Text("Nova tarefa") },
                 navigationIcon = {
                     IconButton(onClick = dropUnlessResumed(block = onBack)) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Voltar"
-                        )
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
                     }
                 }
             )
-        }
+        },
+        floatingActionButton = {
+            ExtendedFloatingActionButton(
+                onClick = dropUnlessResumed { if (title.isNotBlank()) onSave(title, priority) },
+                icon = { Icon(Icons.Default.Check, contentDescription = null) },
+                text = { Text("Salvar") },
+                expanded = title.isNotBlank(),
+            )
+        },
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
                 .padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            Text("Projeto #$projectId")
-            OutlinedTextField(
-                value = taskName,
-                onValueChange = { taskName = it },
-                label = { Text("Nome da tarefa") },
-                modifier = Modifier.fillMaxWidth()
+            NewTaskFormContent(
+                title = title,
+                onTitleChange = { title = it },
+                priority = priority,
+                onPriorityChange = { priority = it },
             )
-            Button(
-                onClick = dropUnlessResumed { onSave(taskName) },
-                enabled = taskName.isNotBlank()
-            ) {
-                Text("Salvar")
-            }
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+fun NewTaskDialog(
+    onBack: () -> Unit,
+    onSave: (title: String, priority: Priority) -> Unit,
+) {
+    var title by rememberSaveable { mutableStateOf("") }
+    var priority by rememberSaveable { mutableStateOf(Priority.MEDIUM) }
+
+    AlertDialog(
+        onDismissRequest = onBack,
+        title = { Text("Nova tarefa") },
+        text = {
+            NewTaskFormContent(
+                title = title,
+                onTitleChange = { title = it },
+                priority = priority,
+                onPriorityChange = { priority = it },
+            )
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { onSave(title, priority) },
+                enabled = title.isNotBlank(),
+            ) {
+                Text("Adicionar")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onBack) { Text("Cancelar") }
+        },
+    )
 }

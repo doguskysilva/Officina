@@ -43,6 +43,8 @@ import com.doguskytech.officina.navigation.TaskList
 import com.doguskytech.officina.scenes.BottomSheetSceneStrategy
 import com.doguskytech.officina.scenes.rememberBottomSheetSceneStrategy
 import com.doguskytech.officina.screens.ConfirmDeleteDialog
+import com.doguskytech.officina.data.Priority
+import com.doguskytech.officina.screens.NewTaskDialog
 import com.doguskytech.officina.screens.NewTaskScreen
 import com.doguskytech.officina.screens.ProjectDetailPlaceholder
 import com.doguskytech.officina.screens.ProjectDetailScreen
@@ -193,24 +195,34 @@ class MainActivity : ComponentActivity() {
                                         onBack = { activeBackStack.removeLastOrNull() },
                                         onNewTaskClick = { newTaskRoute -> activeBackStack.add(newTaskRoute) },
                                         onDeleteClick = { confirmRoute -> activeBackStack.add(confirmRoute) },
-                                        onTaskToggle = { taskId -> vm.toggleTask(taskId) },
                                         onMarkAllDone = { vm.markAllTasksDone() },
+                                        onCompleteTasks = { ids -> vm.completeTasks(ids) },
+                                        onDeleteTasks = { ids -> vm.deleteTasks(ids) },
                                         highlightTaskId = route.highlightTaskId,
                                     )
                                 }
                             }
 
                             entry<NewTask>(
-                                metadata = ListDetailSceneStrategy.extraPane()
+                                metadata = if (isMultiPane) DialogSceneStrategy.dialog()
+                                           else emptyMap()
                             ) { route ->
-                                NewTaskScreen(
-                                    projectId = route.projectId,
-                                    onBack = { activeBackStack.removeLastOrNull() },
-                                    onSave = { title ->
-                                        ProjectRepository.addTask(route.projectId, title)
-                                        activeBackStack.removeLastOrNull()
-                                    }
-                                )
+                                val saveTask: (String, Priority) -> Unit = { t, p ->
+                                    ProjectRepository.addTask(route.projectId, t, p)
+                                    activeBackStack.removeLastOrNull()
+                                }
+                                if (isMultiPane) {
+                                    NewTaskDialog(
+                                        onBack = { activeBackStack.removeLastOrNull() },
+                                        onSave = saveTask,
+                                    )
+                                } else {
+                                    NewTaskScreen(
+                                        projectId = route.projectId,
+                                        onBack = { activeBackStack.removeLastOrNull() },
+                                        onSave = saveTask,
+                                    )
+                                }
                             }
 
                             entry<SortProjects>(

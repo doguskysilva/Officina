@@ -1,6 +1,7 @@
 package com.doguskytech.officina.screens
 
 import androidx.compose.runtime.Composable
+import com.doguskytech.officina.data.Priority
 import com.doguskytech.officina.ui.preview.DevicePreviews
 import com.doguskytech.officina.ui.preview.LightDarkPreviews
 import com.doguskytech.officina.ui.theme.OfficinaTheme
@@ -28,7 +29,18 @@ private fun NewTaskScreenPreview() {
         NewTaskScreen(
             projectId = 1,
             onBack = {},
-            onSave = {},
+            onSave = { _, _ -> },
+        )
+    }
+}
+
+@LightDarkPreviews
+@Composable
+private fun NewTaskDialogPreview() {
+    OfficinaTheme {
+        NewTaskDialog(
+            onBack = {},
+            onSave = { _, _ -> },
         )
     }
 }
