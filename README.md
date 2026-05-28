@@ -20,6 +20,7 @@ Projeto de aprendizagem Android desenvolvido como laboratório prático para dom
 | **10** | AppBarWithSearch + ExpandedDockedSearchBarWithGap + LargeFlexibleTopAppBar | [`00d91a9`](../../commit/00d91a9) | [lesson10.md](docs/lesson10.md) |
 | **11** | HorizontalFloatingToolbar — FAB slot com ações contextuais, floatingToolbarVerticalNestedScroll | WIP | [lesson11.md](docs/lesson11.md) |
 | **12** | Glance Widgets — SizeMode, GlanceTheme, LazyColumn, LinearProgressIndicator, ActionCallback, ConfigActivity | [`39edae9`](../../commit/39edae9) | [lesson12.md](docs/lesson12.md) |
+| **13** | Compose Previews — anotações customizadas, PreviewParameterProvider, multi-device, dark/dynamic colors, font scale | [`380bf8a`](../../commit/380bf8a) | — |
 
 ## Tópicos de Aprendizagem
 
