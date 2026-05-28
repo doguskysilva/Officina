@@ -24,10 +24,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -37,6 +38,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.dropUnlessResumed
 import com.doguskytech.officina.data.Project
@@ -48,6 +50,7 @@ import com.doguskytech.officina.ui.UiState
 @Composable
 fun ProjectDetailScreen(
     uiState: UiState<Project>,
+    showBackButton: Boolean = true,
     onBack: () -> Unit,
     onNewTaskClick: (NewTask) -> Unit,
     onDeleteClick: (ConfirmDelete) -> Unit,
@@ -68,19 +71,24 @@ fun ProjectDetailScreen(
             val project = uiState.data
             val lazyListState = rememberLazyListState()
             var toolbarExpanded by rememberSaveable { mutableStateOf(true) }
+            val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
             LaunchedEffect(highlightTaskId) {
                 if (highlightTaskId != null) lazyListState.animateScrollToItem(1)
             }
 
             Scaffold(
+                modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
                 topBar = {
-                    TopAppBar(
+                    LargeFlexibleTopAppBar(
                         title = { Text(project.name) },
                         subtitle = { Text("${project.tasks.size} tarefas") },
+                        scrollBehavior = scrollBehavior,
                         navigationIcon = {
-                            IconButton(onClick = dropUnlessResumed(block = onBack)) {
-                                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
+                            if (showBackButton) {
+                                IconButton(onClick = dropUnlessResumed(block = onBack)) {
+                                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
+                                }
                             }
                         },
                     )

@@ -46,6 +46,23 @@ private fun ProjectDetailScreenDynamicColorsPreview() {
     }
 }
 
+// Tablet em list-detail: sem botão voltar
+@OfficinaPreviews
+@Composable
+private fun ProjectDetailScreenNoBackButtonPreview() {
+    OfficinaTheme {
+        ProjectDetailScreen(
+            uiState = UiState.Success(fakeProjects.first()),
+            showBackButton = false,
+            onBack = {},
+            onNewTaskClick = {},
+            onDeleteClick = {},
+            onTaskToggle = {},
+            onMarkAllDone = {},
+        )
+    }
+}
+
 // Landscape + foldable desdobrado — formatos que OfficinaPreviews não cobre
 @DevicePreviews
 @Composable

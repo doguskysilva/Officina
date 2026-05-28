@@ -9,6 +9,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items as gridItems
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -143,7 +146,8 @@ fun TaskListScreen(
                         )
                     }
                 } else {
-                    LazyColumn(
+                    LazyVerticalGrid(
+                        columns = GridCells.Adaptive(320.dp),
                         contentPadding = PaddingValues(
                             top = padding.calculateTopPadding() + 12.dp,
                             bottom = padding.calculateBottomPadding() + 12.dp,
@@ -151,8 +155,9 @@ fun TaskListScreen(
                             end = 16.dp,
                         ),
                         verticalArrangement = Arrangement.spacedBy(4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
-                        items(allTasks, key = { it.task.id }) { item ->
+                        gridItems(allTasks, key = { it.task.id }) { item ->
                             ListItem(
                                 selected = item.task.done,
                                 onClick = {},

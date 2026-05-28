@@ -96,6 +96,7 @@ class MainActivity : ComponentActivity() {
                     calculatePaneScaffoldDirective(windowAdaptiveInfo)
                         .copy(horizontalPartitionSpacerSize = 0.dp)
                 }
+                val isMultiPane = directive.maxHorizontalPartitions > 1
                 val listDetailStrategy = rememberListDetailSceneStrategy<NavKey>(
                     directive = directive
                 )
@@ -188,6 +189,7 @@ class MainActivity : ComponentActivity() {
                                     // não em cada update de dado (tarefa adicionada, etc).
                                     ProjectDetailScreen(
                                         uiState = uiState,
+                                        showBackButton = !isMultiPane,
                                         onBack = { activeBackStack.removeLastOrNull() },
                                         onNewTaskClick = { newTaskRoute -> activeBackStack.add(newTaskRoute) },
                                         onDeleteClick = { confirmRoute -> activeBackStack.add(confirmRoute) },
