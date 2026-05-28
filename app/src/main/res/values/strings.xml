@@ -1,9 +1,94 @@
 <resources>
+    <!-- App -->
     <string name="app_name">Officina</string>
+
+    <!-- Widgets -->
     <string name="summary_widget_label">Officina — Resumo</string>
     <string name="summary_widget_description">Exibe o total de projetos e tarefas pendentes</string>
     <string name="project_list_widget_label">Officina — Projetos</string>
     <string name="project_list_widget_description">Lista de projetos com progresso de tarefas</string>
     <string name="project_tasks_widget_label">Officina — Tarefas</string>
     <string name="project_tasks_widget_description">Tarefas de um projeto específico com toggle direto do widget</string>
+
+    <!-- Navegação -->
+    <string name="nav_projects">Projetos</string>
+    <string name="nav_tasks">Tarefas</string>
+    <string name="nav_settings">Ajustes</string>
+
+    <!-- Ações comuns -->
+    <string name="action_cancel">Cancelar</string>
+    <string name="action_confirm">Confirmar</string>
+    <string name="action_save">Salvar</string>
+    <string name="action_back">Voltar</string>
+    <string name="action_delete">Excluir</string>
+    <string name="action_add">Adicionar</string>
+
+    <!-- Prioridade -->
+    <string name="priority_low">Baixa</string>
+    <string name="priority_medium">Média</string>
+    <string name="priority_high">Alta</string>
+
+    <!-- ProjectListScreen -->
+    <string name="cd_sort">Ordenar</string>
+    <string name="sort_title">Ordenar projetos</string>
+    <string name="sort_az">A–Z (nome)</string>
+    <string name="sort_newest">Mais recentes</string>
+    <string name="sort_oldest">Mais antigos</string>
+
+    <!-- ProjectDetailScreen -->
+    <string name="cd_new_task">Nova tarefa</string>
+    <string name="cd_complete_selected">Concluir selecionadas</string>
+    <string name="cd_delete_selected">Remover selecionadas</string>
+    <string name="cd_complete_all">Concluir todas</string>
+    <string name="cd_delete_project">Excluir projeto</string>
+    <string name="no_tasks_yet">Nenhuma tarefa ainda.</string>
+    <string name="confirm_complete_all_title">Concluir todas as tarefas?</string>
+
+    <!-- TaskListScreen -->
+    <string name="filter_all">Todas</string>
+    <string name="filter_pending">Pendentes</string>
+    <string name="filter_done">Concluídas</string>
+    <string name="search_placeholder">Buscar tarefa…</string>
+    <string name="cd_clear_search">Limpar busca</string>
+    <string name="no_search_results">Nenhum resultado para \"%s\"</string>
+    <string name="no_tasks_in_filter">Nenhuma tarefa neste filtro.</string>
+
+    <!-- NewTaskScreen / NewTaskDialog -->
+    <string name="new_task_title">Nova tarefa</string>
+    <string name="task_name_label">Nome da tarefa</string>
+    <string name="cd_add_task">Adicionar tarefa</string>
+
+    <!-- ConfirmDeleteDialog -->
+    <string name="delete_project_title">Excluir projeto?</string>
+    <string name="delete_project_body">\"%s\" será removido permanentemente.</string>
+
+    <!-- ProjectDetailPlaceholder (tablet) -->
+    <string name="placeholder_select_project">Selecione um projeto</string>
+    <string name="placeholder_detail_hint">Os detalhes aparecerão aqui</string>
+
+    <!-- SettingsScreen -->
+    <string name="settings_title">Ajustes</string>
+    <string name="settings_coming_soon">Em breve</string>
+    <string name="settings_module_note">Módulo 4 — múltiplos back stacks</string>
+
+    <!-- Plurais -->
+    <plurals name="projects_count">
+        <item quantity="one">%d projeto</item>
+        <item quantity="other">%d projetos</item>
+    </plurals>
+
+    <plurals name="tasks_count">
+        <item quantity="one">%d tarefa</item>
+        <item quantity="other">%d tarefas</item>
+    </plurals>
+
+    <plurals name="selected_tasks_count">
+        <item quantity="one">%d selecionada</item>
+        <item quantity="other">%d selecionadas</item>
+    </plurals>
+
+    <plurals name="pending_tasks_confirm_body">
+        <item quantity="one">%d tarefa pendente será marcada como concluída.</item>
+        <item quantity="other">%d tarefas pendentes serão marcadas como concluídas.</item>
+    </plurals>
 </resources>

@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonGroupDefaults
@@ -29,11 +28,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.dropUnlessResumed
+import com.doguskytech.officina.R
 import com.doguskytech.officina.data.Priority
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -52,11 +53,10 @@ private fun NewTaskFormContent(
         OutlinedTextField(
             value = title,
             onValueChange = onTitleChange,
-            label = { Text("Nome da tarefa") },
+            label = { Text(stringResource(R.string.task_name_label)) },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
         )
-        // Connected button group: leading/middle/trailing shapes criam bordas compartilhadas
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
@@ -74,7 +74,7 @@ private fun NewTaskFormContent(
                         .weight(1f)
                         .semantics { role = Role.RadioButton },
                 ) {
-                    Text(p.label)
+                    Text(stringResource(p.labelRes))
                 }
             }
         }
@@ -94,10 +94,10 @@ fun NewTaskScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Nova tarefa") },
+                title = { Text(stringResource(R.string.new_task_title)) },
                 navigationIcon = {
                     IconButton(onClick = dropUnlessResumed(block = onBack)) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                 }
             )
@@ -106,7 +106,7 @@ fun NewTaskScreen(
             ExtendedFloatingActionButton(
                 onClick = dropUnlessResumed { if (title.isNotBlank()) onSave(title, priority) },
                 icon = { Icon(Icons.Default.Check, contentDescription = null) },
-                text = { Text("Salvar") },
+                text = { Text(stringResource(R.string.action_save)) },
                 expanded = title.isNotBlank(),
             )
         },
@@ -139,7 +139,7 @@ fun NewTaskDialog(
 
     AlertDialog(
         onDismissRequest = onBack,
-        title = { Text("Nova tarefa") },
+        title = { Text(stringResource(R.string.new_task_title)) },
         text = {
             NewTaskFormContent(
                 title = title,
@@ -153,11 +153,11 @@ fun NewTaskDialog(
                 onClick = { onSave(title, priority) },
                 enabled = title.isNotBlank(),
             ) {
-                Text("Adicionar")
+                Text(stringResource(R.string.action_add))
             }
         },
         dismissButton = {
-            TextButton(onClick = onBack) { Text("Cancelar") }
+            TextButton(onClick = onBack) { Text(stringResource(R.string.action_cancel)) }
         },
     )
 }

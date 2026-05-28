@@ -8,6 +8,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import com.doguskytech.officina.R
 
 // Exibido no painel de detalhe quando nenhum projeto está selecionado (tablet).
 // No phone este composable nunca é renderizado.
@@ -19,12 +21,12 @@ fun ProjectDetailPlaceholder() {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "Selecione um projeto",
+            text = stringResource(R.string.placeholder_select_project),
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Text(
-            text = "Os detalhes aparecerão aqui",
+            text = stringResource(R.string.placeholder_detail_hint),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.outlineVariant
         )

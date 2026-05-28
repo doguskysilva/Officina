@@ -11,21 +11,23 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import com.doguskytech.officina.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen() {
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Ajustes") }) }
+        topBar = { TopAppBar(title = { Text(stringResource(R.string.settings_title)) }) }
     ) { padding ->
         Column(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("Em breve", style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.settings_coming_soon), style = MaterialTheme.typography.titleMedium)
             Text(
-                "Módulo 4 — múltiplos back stacks",
+                stringResource(R.string.settings_module_note),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

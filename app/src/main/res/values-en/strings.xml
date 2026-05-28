@@ -1,0 +1,86 @@
+<resources>
+    <!-- App -->
+    <string name="app_name">Officina</string>
+
+    <!-- Navigation -->
+    <string name="nav_projects">Projects</string>
+    <string name="nav_tasks">Tasks</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Common actions -->
+    <string name="action_cancel">Cancel</string>
+    <string name="action_confirm">Confirm</string>
+    <string name="action_save">Save</string>
+    <string name="action_back">Back</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_add">Add</string>
+
+    <!-- Priority -->
+    <string name="priority_low">Low</string>
+    <string name="priority_medium">Medium</string>
+    <string name="priority_high">High</string>
+
+    <!-- ProjectListScreen -->
+    <string name="cd_sort">Sort</string>
+    <string name="sort_title">Sort projects</string>
+    <string name="sort_az">A–Z (name)</string>
+    <string name="sort_newest">Newest</string>
+    <string name="sort_oldest">Oldest</string>
+
+    <!-- ProjectDetailScreen -->
+    <string name="cd_new_task">New task</string>
+    <string name="cd_complete_selected">Complete selected</string>
+    <string name="cd_delete_selected">Delete selected</string>
+    <string name="cd_complete_all">Complete all</string>
+    <string name="cd_delete_project">Delete project</string>
+    <string name="no_tasks_yet">No tasks yet.</string>
+    <string name="confirm_complete_all_title">Complete all tasks?</string>
+
+    <!-- TaskListScreen -->
+    <string name="filter_all">All</string>
+    <string name="filter_pending">Pending</string>
+    <string name="filter_done">Done</string>
+    <string name="search_placeholder">Search task…</string>
+    <string name="cd_clear_search">Clear search</string>
+    <string name="no_search_results">No results for \"%s\"</string>
+    <string name="no_tasks_in_filter">No tasks in this filter.</string>
+
+    <!-- NewTaskScreen / NewTaskDialog -->
+    <string name="new_task_title">New task</string>
+    <string name="task_name_label">Task name</string>
+    <string name="cd_add_task">Add task</string>
+
+    <!-- ConfirmDeleteDialog -->
+    <string name="delete_project_title">Delete project?</string>
+    <string name="delete_project_body">\"%s\" will be permanently removed.</string>
+
+    <!-- ProjectDetailPlaceholder (tablet) -->
+    <string name="placeholder_select_project">Select a project</string>
+    <string name="placeholder_detail_hint">Details will appear here</string>
+
+    <!-- SettingsScreen -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_coming_soon">Coming soon</string>
+    <string name="settings_module_note">Module 4 — multiple back stacks</string>
+
+    <!-- Plurals -->
+    <plurals name="projects_count">
+        <item quantity="one">%d project</item>
+        <item quantity="other">%d projects</item>
+    </plurals>
+
+    <plurals name="tasks_count">
+        <item quantity="one">%d task</item>
+        <item quantity="other">%d tasks</item>
+    </plurals>
+
+    <plurals name="selected_tasks_count">
+        <item quantity="one">%d selected</item>
+        <item quantity="other">%d selected</item>
+    </plurals>
+
+    <plurals name="pending_tasks_confirm_body">
+        <item quantity="one">%d pending task will be marked as done.</item>
+        <item quantity="other">%d pending tasks will be marked as done.</item>
+    </plurals>
+</resources>

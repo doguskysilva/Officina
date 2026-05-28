@@ -15,10 +15,10 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
@@ -26,8 +26,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.dropUnlessResumed
+import com.doguskytech.officina.R
 import com.doguskytech.officina.data.Project
 import com.doguskytech.officina.navigation.ProjectDetail
 import com.doguskytech.officina.ui.UiState
@@ -45,13 +48,13 @@ fun ProjectListScreen(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             LargeFlexibleTopAppBar(
-                title = { Text("Officina") },
+                title = { Text(stringResource(R.string.app_name)) },
                 subtitle = if (uiState is UiState.Success) {
-                    { Text("${uiState.data.size} projetos") }
+                    { Text(pluralStringResource(R.plurals.projects_count, uiState.data.size, uiState.data.size)) }
                 } else null,
                 actions = {
                     IconButton(onClick = dropUnlessResumed { onSortClick() }) {
-                        Icon(Icons.AutoMirrored.Filled.Sort, contentDescription = "Ordenar")
+                        Icon(Icons.AutoMirrored.Filled.Sort, contentDescription = stringResource(R.string.cd_sort))
                     }
                 },
                 scrollBehavior = scrollBehavior,
@@ -76,23 +79,23 @@ fun ProjectListScreen(
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                items(uiState.data, key = { it.id }) { project ->
-                    // Fase 2: ListItem(selected = ...) cuida do background, shape e animação
-                    // automaticamente. Zero lógica manual de clip/background/cor.
-                    ListItem(
-                        selected = project.id == selectedProjectId,
-                        onClick = dropUnlessResumed {
-                            onProjectClick(ProjectDetail(project.id, project.name))
-                        },
-                        colors = colors,
-                        supportingContent = { Text("${project.tasks.size} tarefas") },
-                        trailingContent = {
-                            Text("→", style = MaterialTheme.typography.titleLarge)
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                    ) { Text(project.name) }
+                    items(uiState.data, key = { it.id }) { project ->
+                        ListItem(
+                            selected = project.id == selectedProjectId,
+                            onClick = dropUnlessResumed {
+                                onProjectClick(ProjectDetail(project.id, project.name))
+                            },
+                            colors = colors,
+                            supportingContent = {
+                                Text(pluralStringResource(R.plurals.tasks_count, project.tasks.size, project.tasks.size))
+                            },
+                            trailingContent = {
+                                Text("→", style = MaterialTheme.typography.titleLarge)
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                        ) { Text(project.name) }
+                    }
                 }
-            }
             }
         }
     }

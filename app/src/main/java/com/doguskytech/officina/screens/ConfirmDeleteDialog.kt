@@ -13,11 +13,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.dropUnlessResumed
+import com.doguskytech.officina.R
 
-// Conteúdo do diálogo — um Composable normal, sem saber que está dentro de um Dialog.
-// Quem decide que isso vira Dialog é a SceneStrategy no NavDisplay, via metadata.
 @Composable
 fun ConfirmDeleteDialog(
     projectName: String,
@@ -33,11 +33,11 @@ fun ConfirmDeleteDialog(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                text = "Excluir projeto?",
+                text = stringResource(R.string.delete_project_title),
                 style = MaterialTheme.typography.headlineSmall
             )
             Text(
-                text = "\"$projectName\" será removido permanentemente.",
+                text = stringResource(R.string.delete_project_body, projectName),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -46,13 +46,13 @@ fun ConfirmDeleteDialog(
                 horizontalArrangement = Arrangement.End
             ) {
                 TextButton(onClick = dropUnlessResumed(block = onDismiss)) {
-                    Text("Cancelar")
+                    Text(stringResource(R.string.action_cancel))
                 }
                 OutlinedButton(
                     onClick = dropUnlessResumed(block = onConfirm),
                     modifier = Modifier.padding(start = 8.dp)
                 ) {
-                    Text("Excluir", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error)
                 }
             }
         }

@@ -21,6 +21,8 @@ import com.doguskytech.officina.ui.AnimationConfig
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteItem
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.res.stringResource
+import com.doguskytech.officina.R
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -117,19 +119,19 @@ class MainActivity : ComponentActivity() {
                     navigationItems = {
                         NavigationSuiteItem(
                             icon = { Icon(Icons.Default.Build, contentDescription = null) },
-                            label = { Text("Projetos") },
+                            label = { Text(stringResource(R.string.nav_projects)) },
                             selected = selectedTab == ProjectList,
                             onClick = { selectedTab = ProjectList },
                         )
                         NavigationSuiteItem(
                             icon = { Icon(Icons.AutoMirrored.Filled.List, contentDescription = null) },
-                            label = { Text("Tarefas") },
+                            label = { Text(stringResource(R.string.nav_tasks)) },
                             selected = selectedTab == TaskList,
                             onClick = { selectedTab = TaskList },
                         )
                         NavigationSuiteItem(
                             icon = { Icon(Icons.Default.Settings, contentDescription = null) },
-                            label = { Text("Ajustes") },
+                            label = { Text(stringResource(R.string.nav_settings)) },
                             selected = selectedTab == AppSettings,
                             onClick = { selectedTab = AppSettings },
                         )

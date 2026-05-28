@@ -1,10 +1,7 @@
 package com.doguskytech.officina.screens
 
+import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -56,30 +53,24 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.dp
+import com.doguskytech.officina.R
 import com.doguskytech.officina.data.Priority
 import com.doguskytech.officina.data.TaskWithProject
 import com.doguskytech.officina.ui.UiState
+import com.doguskytech.officina.ui.itemEnterTransition
+import com.doguskytech.officina.ui.itemExitTransition
+import com.doguskytech.officina.ui.priorityColor
 import kotlinx.coroutines.launch
 
-private enum class StatusFilter(val label: String) {
-    ALL("Todas"),
-    PENDING("Pendentes"),
-    DONE("Concluídas"),
+private enum class StatusFilter(@StringRes val labelRes: Int) {
+    ALL(R.string.filter_all),
+    PENDING(R.string.filter_pending),
+    DONE(R.string.filter_done),
 }
-
-@Composable
-private fun priorityColor(priority: Priority): Color = when (priority) {
-    Priority.LOW    -> MaterialTheme.colorScheme.tertiary
-    Priority.MEDIUM -> MaterialTheme.colorScheme.primary
-    Priority.HIGH   -> MaterialTheme.colorScheme.error
-}
-
-private val enterTransition = fadeIn() + scaleIn(initialScale = 0.85f)
-private val exitTransition  = fadeOut() + scaleOut(targetScale = 0.85f)
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -117,6 +108,9 @@ fun TaskListScreen(
             .filter { priorityFilter == null || it.task.priority == priorityFilter }
     }
 
+    val searchPlaceholder = stringResource(R.string.search_placeholder)
+    val clearSearchCd = stringResource(R.string.cd_clear_search)
+
     val inputField: @Composable () -> Unit = {
         SearchBarDefaults.InputField(
             textFieldState = textFieldState,
@@ -124,13 +118,13 @@ fun TaskListScreen(
             colors = colors.searchBarColors.inputFieldColors,
             onSearch = { scope.launch { searchBarState.animateToCollapsed() } },
             placeholder = {
-                Text(modifier = Modifier.clearAndSetSemantics {}, text = "Buscar tarefa...")
+                Text(modifier = Modifier.clearAndSetSemantics {}, text = searchPlaceholder)
             },
             leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
             trailingIcon = {
                 if (query.isNotEmpty()) {
                     IconButton(onClick = { textFieldState.edit { replace(0, length, "") } }) {
-                        Icon(Icons.Default.Close, contentDescription = "Limpar busca")
+                        Icon(Icons.Default.Close, contentDescription = clearSearchCd)
                     }
                 }
             },
@@ -156,7 +150,7 @@ fun TaskListScreen(
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(
-                            "Nenhum resultado para \"$query\"",
+                            stringResource(R.string.no_search_results, query),
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -196,7 +190,7 @@ fun TaskListScreen(
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(
-                            "Nenhuma tarefa ainda.",
+                            stringResource(R.string.no_tasks_yet),
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -229,7 +223,7 @@ fun TaskListScreen(
                                     contentAlignment = Alignment.Center,
                                 ) {
                                     Text(
-                                        "Nenhuma tarefa neste filtro.",
+                                        stringResource(R.string.no_tasks_in_filter),
                                         style = MaterialTheme.typography.bodyLarge,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     )
@@ -259,7 +253,7 @@ fun TaskListScreen(
 private fun PriorityOrCheckIcon(item: TaskWithProject) {
     AnimatedContent(
         targetState = item.task.done,
-        transitionSpec = { enterTransition togetherWith exitTransition },
+        transitionSpec = { itemEnterTransition togetherWith itemExitTransition },
         label = "taskIcon_${item.task.id}",
     ) { isDone ->
         if (isDone) {
@@ -306,7 +300,7 @@ private fun FilterRow(
                 FilterChip(
                     selected = statusFilter == option,
                     onClick = { onStatusFilterChange(option) },
-                    label = { Text(option.label) },
+                    label = { Text(stringResource(option.labelRes)) },
                     leadingIcon = if (statusFilter == option) {
                         { Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp)) }
                     } else null,
@@ -320,7 +314,7 @@ private fun FilterRow(
             FilterChip(
                 selected = priorityFilter == null,
                 onClick = { onPriorityFilterChange(null) },
-                label = { Text("Todas") },
+                label = { Text(stringResource(R.string.filter_all)) },
                 leadingIcon = if (priorityFilter == null) {
                     { Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp)) }
                 } else null,
@@ -329,7 +323,7 @@ private fun FilterRow(
                 FilterChip(
                     selected = priorityFilter == priority,
                     onClick = { onPriorityFilterChange(priority) },
-                    label = { Text(priority.label) },
+                    label = { Text(stringResource(priority.labelRes)) },
                     leadingIcon = if (priorityFilter == priority) {
                         { Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp)) }
                     } else null,
