@@ -50,6 +50,35 @@
     <string name="task_name_label">Task name</string>
     <string name="cd_add_task">Add task</string>
 
+    <!-- TaskStatus -->
+    <string name="task_status_pending">Pending</string>
+    <string name="task_status_done">Done</string>
+    <string name="task_status_cancelled">Cancelled</string>
+
+    <!-- ProjectStatus -->
+    <string name="project_status_waiting">Waiting</string>
+    <string name="project_status_in_progress">In progress</string>
+    <string name="project_status_done">Done</string>
+    <string name="project_status_cancelled">Cancelled</string>
+
+    <!-- Project actions -->
+    <string name="action_start_project">Start</string>
+    <string name="action_finish_project">Finish</string>
+    <string name="action_cancel_project">Cancel project</string>
+
+    <!-- Task actions -->
+    <string name="cd_cancel_selected">Cancel selected</string>
+
+    <!-- "Ready to finish" banner -->
+    <string name="all_tasks_done_banner">All tasks done. Ready to finish!</string>
+    <string name="action_finish_now">Finish now</string>
+
+    <!-- NewProjectScreen / NewProjectDialog -->
+    <string name="new_project_title">New project</string>
+    <string name="project_name_label">Project name</string>
+    <string name="cd_new_project">New project</string>
+    <string name="all_tasks_resolved">All resolved</string>
+
     <!-- ConfirmDeleteDialog -->
     <string name="delete_project_title">Delete project?</string>
     <string name="delete_project_body">\"%s\" will be permanently removed.</string>
@@ -77,6 +106,11 @@
     <plurals name="selected_tasks_count">
         <item quantity="one">%d selected</item>
         <item quantity="other">%d selected</item>
+    </plurals>
+
+    <plurals name="pending_tasks_count">
+        <item quantity="one">%d pending</item>
+        <item quantity="other">%d pending</item>
     </plurals>
 
     <plurals name="pending_tasks_confirm_body">

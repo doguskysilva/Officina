@@ -2,8 +2,8 @@ package com.doguskytech.officina.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.doguskytech.officina.data.Project
-import com.doguskytech.officina.data.ProjectRepository
+import com.doguskytech.officina.data.InMemoryProjectRepository
+import com.doguskytech.officina.domain.model.Project
 import com.doguskytech.officina.ui.UiState
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.stateIn
 
 class ProjectDetailViewModel(private val projectId: Int) : ViewModel() {
 
-    val uiState: StateFlow<UiState<Project>> = ProjectRepository.projects
+    val uiState: StateFlow<UiState<Project>> = InMemoryProjectRepository.projects
         .map<List<Project>, UiState<Project>> { projects ->
             val project = projects.find { it.id == projectId }
             if (project != null) UiState.Success(project)
@@ -24,11 +24,12 @@ class ProjectDetailViewModel(private val projectId: Int) : ViewModel() {
             initialValue = UiState.Loading,
         )
 
-    fun completeTasks(taskIds: Set<Int>) = ProjectRepository.completeTasks(projectId, taskIds)
-
-    fun deleteTasks(taskIds: Set<Int>) = ProjectRepository.deleteTasks(projectId, taskIds)
-
-    fun markAllTasksDone() = ProjectRepository.markAllTasksDone(projectId)
-
-    fun deleteProject() = ProjectRepository.deleteProject(projectId)
+    fun completeTasks(taskIds: Set<Int>) = InMemoryProjectRepository.completeTasks(projectId, taskIds)
+    fun cancelTasks(taskIds: Set<Int>)   = InMemoryProjectRepository.cancelTasks(projectId, taskIds)
+    fun deleteTasks(taskIds: Set<Int>)   = InMemoryProjectRepository.deleteTasks(projectId, taskIds)
+    fun markAllTasksDone()               = InMemoryProjectRepository.markAllTasksDone(projectId)
+    fun startProject()                   = InMemoryProjectRepository.startProject(projectId)
+    fun finishProject()                  = InMemoryProjectRepository.finishProject(projectId)
+    fun cancelProject()                  = InMemoryProjectRepository.cancelProject(projectId)
+    fun deleteProject()                  = InMemoryProjectRepository.deleteProject(projectId)
 }

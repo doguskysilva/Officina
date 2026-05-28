@@ -1,8 +1,3 @@
 package com.doguskytech.officina.data
 
-data class Task(
-    val id: Int,
-    val title: String,
-    val done: Boolean = false,
-    val priority: Priority = Priority.MEDIUM,
-)
+typealias Task = com.doguskytech.officina.domain.model.Task

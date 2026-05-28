@@ -29,3 +29,5 @@ data class ConfirmDelete(val projectId: Int, val projectName: String) : NavKey
 
 // Overlay — abre como BottomSheet via BottomSheetSceneStrategy
 @Serializable data object SortProjects : NavKey
+
+@Serializable data object NewProject : NavKey

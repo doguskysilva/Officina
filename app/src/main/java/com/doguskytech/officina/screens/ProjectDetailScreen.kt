@@ -2,6 +2,7 @@ package com.doguskytech.officina.screens
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -18,14 +19,22 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DeleteSweep
+import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.DoneAll
 import androidx.compose.material.icons.filled.Flag
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingToolbarDefaults
@@ -50,20 +59,25 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.dropUnlessResumed
 import com.doguskytech.officina.R
-import com.doguskytech.officina.data.Project
+import com.doguskytech.officina.domain.model.Project
+import com.doguskytech.officina.domain.model.ProjectStatus
+import com.doguskytech.officina.domain.model.TaskStatus
 import com.doguskytech.officina.navigation.ConfirmDelete
 import com.doguskytech.officina.navigation.NewTask
 import com.doguskytech.officina.ui.UiState
 import com.doguskytech.officina.ui.itemEnterTransition
 import com.doguskytech.officina.ui.itemExitTransition
+import com.doguskytech.officina.ui.labelRes
 import com.doguskytech.officina.ui.priorityColor
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -77,6 +91,10 @@ fun ProjectDetailScreen(
     onMarkAllDone: () -> Unit,
     onCompleteTasks: (Set<Int>) -> Unit,
     onDeleteTasks: (Set<Int>) -> Unit,
+    onCancelTasks: (Set<Int>) -> Unit = {},
+    onStartProject: () -> Unit = {},
+    onFinishProject: () -> Unit = {},
+    onCancelProject: () -> Unit = {},
     highlightTaskId: Int? = null,
 ) {
     when (uiState) {
@@ -96,6 +114,7 @@ fun ProjectDetailScreen(
             var selectedTaskIds by remember { mutableStateOf(emptySet<Int>()) }
             val isInSelectionMode = selectedTaskIds.isNotEmpty()
             var showMarkAllConfirm by remember { mutableStateOf(false) }
+            var showProjectMenu by remember { mutableStateOf(false) }
 
             BackHandler(enabled = isInSelectionMode) { selectedTaskIds = emptySet() }
 
@@ -104,7 +123,7 @@ fun ProjectDetailScreen(
             }
 
             if (showMarkAllConfirm) {
-                val pending = project.tasks.count { !it.done }
+                val pending = project.tasks.count { it.isPending }
                 AlertDialog(
                     onDismissRequest = { showMarkAllConfirm = false },
                     title = { Text(stringResource(R.string.confirm_complete_all_title)) },
@@ -128,16 +147,37 @@ fun ProjectDetailScreen(
                     LargeFlexibleTopAppBar(
                         title = { Text(project.name) },
                         subtitle = {
-                            if (isInSelectionMode)
+                            if (isInSelectionMode) {
                                 Text(pluralStringResource(R.plurals.selected_tasks_count, selectedTaskIds.size, selectedTaskIds.size))
-                            else
-                                Text(pluralStringResource(R.plurals.tasks_count, project.tasks.size, project.tasks.size))
+                            } else {
+                                val taskCount = pluralStringResource(R.plurals.tasks_count, project.tasks.size, project.tasks.size)
+                                Text("$taskCount · ${stringResource(project.status.labelRes)}")
+                            }
                         },
                         scrollBehavior = scrollBehavior,
                         navigationIcon = {
                             if (showBackButton) {
                                 IconButton(onClick = dropUnlessResumed(block = onBack)) {
                                     Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
+                                }
+                            }
+                        },
+                        actions = {
+                            if (!isInSelectionMode && project.isActive) {
+                                Box {
+                                    IconButton(onClick = { showProjectMenu = true }) {
+                                        Icon(Icons.Default.MoreVert, contentDescription = null)
+                                    }
+                                    DropdownMenu(
+                                        expanded = showProjectMenu,
+                                        onDismissRequest = { showProjectMenu = false },
+                                    ) {
+                                        DropdownMenuItem(
+                                            text = { Text(stringResource(R.string.action_cancel_project)) },
+                                            onClick = { showProjectMenu = false; onCancelProject() },
+                                            leadingIcon = { Icon(Icons.Default.Cancel, contentDescription = null) },
+                                        )
+                                    }
                                 }
                             }
                         },
@@ -149,22 +189,27 @@ fun ProjectDetailScreen(
                         floatingActionButton = {
                             FloatingToolbarDefaults.VibrantFloatingActionButton(
                                 onClick = dropUnlessResumed {
-                                    selectedTaskIds = emptySet()
-                                    onNewTaskClick(NewTask(projectId = project.id))
-                                }
+                                    if (project.isActive) {
+                                        selectedTaskIds = emptySet()
+                                        onNewTaskClick(NewTask(projectId = project.id))
+                                    }
+                                },
+                                modifier = Modifier.alpha(if (project.isActive) 1f else 0.38f),
                             ) {
                                 Icon(Icons.Default.Add, contentDescription = stringResource(R.string.cd_new_task))
                             }
                         },
                         colors = FloatingToolbarDefaults.vibrantFloatingToolbarColors(),
                     ) {
+                        // null = selection mode; non-null = status-based actions
                         AnimatedContent(
-                            targetState = isInSelectionMode,
+                            targetState = if (isInSelectionMode) null else project.status,
                             transitionSpec = { itemEnterTransition togetherWith itemExitTransition },
                             label = "toolbarActions",
-                        ) { inSelection ->
+                        ) { status ->
                             Row {
-                                if (inSelection) {
+                                if (status == null) {
+                                    // Multi-select mode
                                     IconButton(
                                         onClick = {
                                             onCompleteTasks(selectedTaskIds)
@@ -176,6 +221,15 @@ fun ProjectDetailScreen(
                                     }
                                     IconButton(
                                         onClick = {
+                                            onCancelTasks(selectedTaskIds)
+                                            selectedTaskIds = emptySet()
+                                        },
+                                        modifier = Modifier.focusProperties { canFocus = toolbarExpanded },
+                                    ) {
+                                        Icon(Icons.Filled.Cancel, contentDescription = stringResource(R.string.cd_cancel_selected))
+                                    }
+                                    IconButton(
+                                        onClick = {
                                             onDeleteTasks(selectedTaskIds)
                                             selectedTaskIds = emptySet()
                                         },
@@ -183,20 +237,47 @@ fun ProjectDetailScreen(
                                     ) {
                                         Icon(Icons.Filled.DeleteSweep, contentDescription = stringResource(R.string.cd_delete_selected))
                                     }
-                                } else {
-                                    IconButton(
-                                        onClick = { showMarkAllConfirm = true },
-                                        modifier = Modifier.focusProperties { canFocus = toolbarExpanded },
-                                    ) {
-                                        Icon(Icons.Filled.DoneAll, contentDescription = stringResource(R.string.cd_complete_all))
+                                } else when (status) {
+                                    ProjectStatus.WAITING -> {
+                                        IconButton(
+                                            onClick = { onStartProject() },
+                                            modifier = Modifier.focusProperties { canFocus = toolbarExpanded },
+                                        ) {
+                                            Icon(Icons.Default.PlayArrow, contentDescription = stringResource(R.string.action_start_project))
+                                        }
+                                        IconButton(
+                                            onClick = dropUnlessResumed {
+                                                onDeleteClick(ConfirmDelete(project.id, project.name))
+                                            },
+                                            modifier = Modifier.focusProperties { canFocus = toolbarExpanded },
+                                        ) {
+                                            Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.cd_delete_project))
+                                        }
                                     }
-                                    IconButton(
-                                        onClick = dropUnlessResumed {
-                                            onDeleteClick(ConfirmDelete(project.id, project.name))
-                                        },
-                                        modifier = Modifier.focusProperties { canFocus = toolbarExpanded },
-                                    ) {
-                                        Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.cd_delete_project))
+                                    ProjectStatus.IN_PROGRESS -> {
+                                        IconButton(
+                                            onClick = { showMarkAllConfirm = true },
+                                            modifier = Modifier.focusProperties { canFocus = toolbarExpanded },
+                                        ) {
+                                            Icon(Icons.Filled.DoneAll, contentDescription = stringResource(R.string.cd_complete_all))
+                                        }
+                                        IconButton(
+                                            onClick = { onFinishProject() },
+                                            enabled = project.canFinish,
+                                            modifier = Modifier.focusProperties { canFocus = toolbarExpanded },
+                                        ) {
+                                            Icon(Icons.Default.Done, contentDescription = stringResource(R.string.action_finish_project))
+                                        }
+                                    }
+                                    ProjectStatus.DONE, ProjectStatus.CANCELLED -> {
+                                        IconButton(
+                                            onClick = dropUnlessResumed {
+                                                onDeleteClick(ConfirmDelete(project.id, project.name))
+                                            },
+                                            modifier = Modifier.focusProperties { canFocus = toolbarExpanded },
+                                        ) {
+                                            Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.cd_delete_project))
+                                        }
                                     }
                                 }
                             }
@@ -215,6 +296,36 @@ fun ProjectDetailScreen(
                             onCollapse = { toolbarExpanded = false },
                         ),
                 ) {
+                    // "Ready to finish" banner
+                    if (project.canFinish && project.isActive && !isInSelectionMode) {
+                        item {
+                            AnimatedVisibility(visible = true) {
+                                Card(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                                ) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                    ) {
+                                        Text(
+                                            stringResource(R.string.all_tasks_done_banner),
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            modifier = Modifier.weight(1f),
+                                        )
+                                        TextButton(onClick = onFinishProject) {
+                                            Text(stringResource(R.string.action_finish_now))
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
                     if (project.tasks.isEmpty()) {
                         item {
                             Box(
@@ -251,18 +362,22 @@ fun ProjectDetailScreen(
                                         colors = itemColors,
                                         trailingContent = {
                                             AnimatedContent(
-                                                targetState = task.done,
+                                                targetState = task.status,
                                                 transitionSpec = { itemEnterTransition togetherWith itemExitTransition },
                                                 label = "taskIcon_${task.id}",
-                                            ) { isDone ->
-                                                if (isDone) {
-                                                    Icon(
+                                            ) { status ->
+                                                when (status) {
+                                                    TaskStatus.DONE -> Icon(
                                                         Icons.Default.Check,
                                                         contentDescription = null,
                                                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                                     )
-                                                } else {
-                                                    Box(
+                                                    TaskStatus.CANCELLED -> Icon(
+                                                        Icons.Default.Close,
+                                                        contentDescription = null,
+                                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                    )
+                                                    TaskStatus.PENDING -> Box(
                                                         modifier = Modifier
                                                             .size(28.dp)
                                                             .clip(CircleShape)
@@ -280,7 +395,13 @@ fun ProjectDetailScreen(
                                             }
                                         },
                                         modifier = Modifier.fillMaxWidth(),
-                                    ) { Text(task.title) }
+                                    ) {
+                                        Text(
+                                            text = task.title,
+                                            textDecoration = if (task.status == TaskStatus.CANCELLED)
+                                                TextDecoration.LineThrough else null,
+                                        )
+                                    }
                                 }
                             }
                         }

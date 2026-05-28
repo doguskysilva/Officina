@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.dropUnlessResumed
 import com.doguskytech.officina.R
 import com.doguskytech.officina.data.Priority
+import com.doguskytech.officina.ui.labelRes
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable

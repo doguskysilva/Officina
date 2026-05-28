@@ -34,19 +34,22 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.scene.DialogSceneStrategy
 import androidx.navigation3.ui.NavDisplay
-import com.doguskytech.officina.data.ProjectRepository
+import com.doguskytech.officina.data.InMemoryProjectRepository
+import com.doguskytech.officina.domain.model.Priority
 import com.doguskytech.officina.navigation.AppSettings
 import com.doguskytech.officina.navigation.ConfirmDelete
 import com.doguskytech.officina.navigation.NewTask
 import com.doguskytech.officina.navigation.ProjectDetail
 import com.doguskytech.officina.navigation.ProjectList
+import com.doguskytech.officina.navigation.NewProject
 import com.doguskytech.officina.navigation.SortProjects
 import com.doguskytech.officina.navigation.TaskList
 import com.doguskytech.officina.scenes.BottomSheetSceneStrategy
 import com.doguskytech.officina.scenes.rememberBottomSheetSceneStrategy
 import com.doguskytech.officina.screens.ConfirmDeleteDialog
-import com.doguskytech.officina.data.Priority
 import com.doguskytech.officina.screens.NewTaskDialog
+import com.doguskytech.officina.screens.NewProjectDialog
+import com.doguskytech.officina.screens.NewProjectScreen
 import com.doguskytech.officina.screens.NewTaskScreen
 import com.doguskytech.officina.screens.ProjectDetailPlaceholder
 import com.doguskytech.officina.screens.ProjectDetailScreen
@@ -57,6 +60,7 @@ import com.doguskytech.officina.screens.TaskListScreen
 import com.doguskytech.officina.ui.theme.OfficinaTheme
 import com.doguskytech.officina.viewmodel.ProjectDetailViewModel
 import com.doguskytech.officina.viewmodel.ProjectListViewModel
+import com.doguskytech.officina.viewmodel.SortProjectsViewModel
 import com.doguskytech.officina.viewmodel.TaskListViewModel
 
 class MainActivity : ComponentActivity() {
@@ -105,16 +109,10 @@ class MainActivity : ComponentActivity() {
                     directive = directive
                 )
 
-                // Fallback para o sistema de back no tablet: quando ListDetailSceneStrategy
-                // agrupa tudo numa única Scene (previousEntries=[]), NavDisplay não habilita
-                // o back nativo — este handler cobre esse caso.
                 BackHandler(enabled = activeBackStack.size > 1) {
                     activeBackStack.removeLastOrNull()
                 }
 
-                // Módulo 6: NavigationSuiteScaffold substitui nosso NavDecoratorStrategy.
-                // Phone → NavigationBar (base), tablet → NavigationRail (lateral),
-                // desktop → NavigationDrawer — tudo automático via WindowAdaptiveInfo.
                 NavigationSuiteScaffold(
                     navigationItems = {
                         NavigationSuiteItem(
@@ -150,9 +148,6 @@ class MainActivity : ComponentActivity() {
                                     detailPlaceholder = { ProjectDetailPlaceholder() }
                                 )
                             ) {
-                                // Módulo 7: viewModel() funciona aqui porque cada entry do NavDisplay
-                                // é um ViewModelStoreOwner independente (via lifecycle-viewmodel-navigation3).
-                                // O ViewModel é destruído quando o entry sai do back stack.
                                 val vm: ProjectListViewModel = viewModel()
                                 val uiState by vm.uiState.collectAsStateWithLifecycle()
                                 val selectedProjectId = activeBackStack
@@ -165,32 +160,23 @@ class MainActivity : ComponentActivity() {
                                         activeBackStack.removeIf { it is ProjectDetail || it is NewTask }
                                         activeBackStack.add(route)
                                     },
-                                    onSortClick = { activeBackStack.add(SortProjects) }
+                                    onSortClick = { activeBackStack.add(SortProjects) },
+                                    onNewProjectClick = { activeBackStack.add(NewProject) }
                                 )
                             }
 
                             entry<ProjectDetail>(
                                 metadata = ListDetailSceneStrategy.detailPane()
                             ) { route ->
-                                // key = projectId garante um ViewModel distinto por projeto.
-                                // Sem isso, o Compose reutiliza o ViewModel quando a Scene troca
-                                // de ProjectDetail(1) para ProjectDetail(2) sem resetar o subtree.
                                 val vm: ProjectDetailViewModel = viewModel(key = route.projectId.toString()) {
                                     ProjectDetailViewModel(route.projectId)
                                 }
                                 val uiState by vm.uiState.collectAsStateWithLifecycle()
-                                // No tablet, ListDetailSceneStrategy agrupa ProjectList e ProjectDetail
-                                // na mesma Scene — NavDisplay não anima (sem troca de scene).
-                                // AnimatedContent resolve: anima o painel de detalhe quando o projeto muda.
                                 AnimatedContent(
                                     targetState = route.projectId,
                                     transitionSpec = { AnimationConfig.current.enter },
                                     label = "ProjectDetailTransition",
                                 ) { _ ->
-                                    // `_` intencional: uiState do escopo externo é sempre correto
-                                    // para este projectId (ViewModel keyed por projectId).
-                                    // targetState=projectId anima só na troca de projeto,
-                                    // não em cada update de dado (tarefa adicionada, etc).
                                     ProjectDetailScreen(
                                         uiState = uiState,
                                         showBackButton = !isMultiPane,
@@ -200,6 +186,10 @@ class MainActivity : ComponentActivity() {
                                         onMarkAllDone = { vm.markAllTasksDone() },
                                         onCompleteTasks = { ids -> vm.completeTasks(ids) },
                                         onDeleteTasks = { ids -> vm.deleteTasks(ids) },
+                                        onCancelTasks = { ids -> vm.cancelTasks(ids) },
+                                        onStartProject = { vm.startProject() },
+                                        onFinishProject = { vm.finishProject() },
+                                        onCancelProject = { vm.cancelProject() },
                                         highlightTaskId = route.highlightTaskId,
                                     )
                                 }
@@ -210,7 +200,7 @@ class MainActivity : ComponentActivity() {
                                            else emptyMap()
                             ) { route ->
                                 val saveTask: (String, Priority) -> Unit = { t, p ->
-                                    ProjectRepository.addTask(route.projectId, t, p)
+                                    InMemoryProjectRepository.addTask(route.projectId, t, p)
                                     activeBackStack.removeLastOrNull()
                                 }
                                 if (isMultiPane) {
@@ -230,7 +220,33 @@ class MainActivity : ComponentActivity() {
                             entry<SortProjects>(
                                 metadata = BottomSheetSceneStrategy.bottomSheet()
                             ) {
-                                SortProjectsSheet()
+                                val vm: SortProjectsViewModel = viewModel()
+                                val currentSort by vm.currentSort.collectAsStateWithLifecycle()
+                                SortProjectsSheet(
+                                    currentSort = currentSort,
+                                    onSortChange = { vm.setSort(it) },
+                                )
+                            }
+
+                            entry<NewProject>(
+                                metadata = if (isMultiPane) DialogSceneStrategy.dialog()
+                                           else emptyMap()
+                            ) {
+                                val saveProject: (String) -> Unit = { name ->
+                                    InMemoryProjectRepository.addProject(name)
+                                    activeBackStack.removeLastOrNull()
+                                }
+                                if (isMultiPane) {
+                                    NewProjectDialog(
+                                        onBack = { activeBackStack.removeLastOrNull() },
+                                        onSave = saveProject,
+                                    )
+                                } else {
+                                    NewProjectScreen(
+                                        onBack = { activeBackStack.removeLastOrNull() },
+                                        onSave = saveProject,
+                                    )
+                                }
                             }
 
                             entry<TaskList> {
@@ -248,18 +264,15 @@ class MainActivity : ComponentActivity() {
 
                             entry<AppSettings> { SettingsScreen() }
 
-                            // OverlayScene — NavigationSuiteScaffold não envolve diálogos
-                            // (OverlayScene não recebe SceneDecorator, então a NavBar/Rail
-                            //  nunca aparece dentro de Dialog ou BottomSheet).
                             entry<ConfirmDelete>(
                                 metadata = DialogSceneStrategy.dialog()
                             ) { route ->
                                 ConfirmDeleteDialog(
                                     projectName = route.projectName,
                                     onConfirm = {
-                                        ProjectRepository.deleteProject(route.projectId)
-                                        activeBackStack.removeLastOrNull() // remove ConfirmDelete
-                                        activeBackStack.removeLastOrNull() // remove ProjectDetail
+                                        InMemoryProjectRepository.deleteProject(route.projectId)
+                                        activeBackStack.removeLastOrNull()
+                                        activeBackStack.removeLastOrNull()
                                     },
                                     onDismiss = { activeBackStack.removeLastOrNull() }
                                 )

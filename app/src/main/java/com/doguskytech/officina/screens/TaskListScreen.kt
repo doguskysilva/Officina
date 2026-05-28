@@ -60,6 +60,8 @@ import androidx.compose.ui.unit.dp
 import com.doguskytech.officina.R
 import com.doguskytech.officina.data.Priority
 import com.doguskytech.officina.data.TaskWithProject
+import com.doguskytech.officina.domain.model.TaskStatus
+import com.doguskytech.officina.ui.labelRes
 import com.doguskytech.officina.ui.UiState
 import com.doguskytech.officina.ui.itemEnterTransition
 import com.doguskytech.officina.ui.itemExitTransition
@@ -101,7 +103,7 @@ fun TaskListScreen(
             .filter {
                 when (statusFilter) {
                     StatusFilter.ALL     -> true
-                    StatusFilter.PENDING -> !it.task.done
+                    StatusFilter.PENDING -> it.task.isPending
                     StatusFilter.DONE    -> it.task.done
                 }
             }
@@ -252,18 +254,22 @@ fun TaskListScreen(
 @Composable
 private fun PriorityOrCheckIcon(item: TaskWithProject) {
     AnimatedContent(
-        targetState = item.task.done,
+        targetState = item.task.status,
         transitionSpec = { itemEnterTransition togetherWith itemExitTransition },
         label = "taskIcon_${item.task.id}",
-    ) { isDone ->
-        if (isDone) {
-            Icon(
+    ) { status ->
+        when (status) {
+            TaskStatus.DONE -> Icon(
                 Icons.Default.Check,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-        } else {
-            Box(
+            TaskStatus.CANCELLED -> Icon(
+                Icons.Default.Close,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            TaskStatus.PENDING -> Box(
                 modifier = Modifier
                     .size(28.dp)
                     .clip(CircleShape)

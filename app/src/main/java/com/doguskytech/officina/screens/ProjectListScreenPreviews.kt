@@ -22,6 +22,7 @@ private fun ProjectListScreenPreview(
             selectedProjectId = null,
             onProjectClick = {},
             onSortClick = {},
+            onNewProjectClick = {},
         )
     }
 }
@@ -37,6 +38,7 @@ private fun ProjectListScreenSelectedPreview() {
             selectedProjectId = 1,
             onProjectClick = {},
             onSortClick = {},
+            onNewProjectClick = {},
         )
     }
 }
@@ -52,6 +54,7 @@ private fun ProjectListScreenDevicesPreview() {
             selectedProjectId = null,
             onProjectClick = {},
             onSortClick = {},
+            onNewProjectClick = {},
         )
     }
 }
@@ -67,6 +70,7 @@ private fun ProjectListScreenFontScalePreview() {
             selectedProjectId = null,
             onProjectClick = {},
             onSortClick = {},
+            onNewProjectClick = {},
         )
     }
 }

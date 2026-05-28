@@ -1,7 +1,7 @@
 package com.doguskytech.officina.screens
 
 import androidx.compose.runtime.Composable
-import com.doguskytech.officina.data.Priority
+import com.doguskytech.officina.domain.model.SortOrder
 import com.doguskytech.officina.ui.preview.DevicePreviews
 import com.doguskytech.officina.ui.preview.LightDarkPreviews
 import com.doguskytech.officina.ui.theme.OfficinaTheme
@@ -61,6 +61,6 @@ private fun ConfirmDeleteDialogPreview() {
 @Composable
 private fun SortProjectsSheetPreview() {
     OfficinaTheme {
-        SortProjectsSheet()
+        SortProjectsSheet(currentSort = SortOrder.NAME_ASC, onSortChange = {})
     }
 }
