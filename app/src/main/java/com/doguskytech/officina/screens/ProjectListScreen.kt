@@ -1,11 +1,5 @@
-@file:OptIn(ExperimentalSharedTransitionApi::class)
-
 package com.doguskytech.officina.screens
 
-import androidx.compose.animation.AnimatedVisibilityScope
-import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.SharedTransitionScope
-import androidx.compose.animation.SharedTransitionScope.ResizeMode
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -13,8 +7,6 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -73,9 +65,6 @@ fun ProjectListScreen(
     onProjectClick: (ProjectDetail) -> Unit,
     onSortClick: () -> Unit,
     onNewProjectClick: () -> Unit = {},
-    // Navigation3 provides these when called from NavDisplay entries
-    sharedTransitionScope: SharedTransitionScope? = null,
-    animatedVisibilityScope: AnimatedVisibilityScope? = null,
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     Scaffold(
@@ -124,8 +113,6 @@ fun ProjectListScreen(
                             onClick = dropUnlessResumed {
                                 onProjectClick(ProjectDetail(project.id, project.name))
                             },
-                            sharedTransitionScope = sharedTransitionScope,
-                            animatedVisibilityScope = animatedVisibilityScope,
                         )
                     }
                 }
@@ -139,14 +126,13 @@ private fun ProjectCard(
     project: Project,
     selected: Boolean,
     onClick: () -> Unit,
-    sharedTransitionScope: SharedTransitionScope?,
-    animatedVisibilityScope: AnimatedVisibilityScope?,
     modifier: Modifier = Modifier,
 ) {
     val total = project.tasks.size
     val done = project.tasks.count { it.done }
     val doneRatio = if (total == 0) 0f else done.toFloat() / total
 
+    // Smooth fill as tasks are completed
     val animatedProgress by animateFloatAsState(
         targetValue = doneRatio,
         animationSpec = tween(durationMillis = 600, easing = FastOutSlowInEasing),
@@ -160,12 +146,14 @@ private fun ProjectCard(
         ProjectStatus.CANCELLED   -> MaterialTheme.colorScheme.outlineVariant
     }
 
+    // Smooth color transition when project finishes (primary → tertiary)
     val animatedProgressColor by animateColorAsState(
         targetValue = progressColor,
         animationSpec = tween(durationMillis = 500),
         label = "progressColor",
     )
 
+    // One-shot scale bounce when project transitions to DONE
     val scale = remember(project.id) { Animatable(1f) }
     val prevStatus = remember(project.id) { mutableStateOf(project.status) }
     LaunchedEffect(project.status) {
@@ -189,25 +177,10 @@ private fun ProjectCard(
         CardDefaults.elevatedCardColors()
     }
 
-    // sharedBounds: card container morphs into the detail screen during navigation.
-    // Applied before graphicsLayer so the shared transition system owns the bounds.
-    val cardSharedMod = if (sharedTransitionScope != null && animatedVisibilityScope != null) {
-        with(sharedTransitionScope) {
-            Modifier.sharedBounds(
-                sharedContentState = rememberSharedContentState("project_card_${project.id}"),
-                animatedVisibilityScope = animatedVisibilityScope,
-                enter = fadeIn(),
-                exit = fadeOut(),
-                resizeMode = ResizeMode.RemeasureToBounds,
-            )
-        }
-    } else Modifier
-
     ElevatedCard(
         onClick = onClick,
         modifier = modifier
             .fillMaxWidth()
-            .then(cardSharedMod)
             .graphicsLayer {
                 scaleX = scale.value
                 scaleY = scale.value
@@ -219,6 +192,7 @@ private fun ProjectCard(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            // Progress ring
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier.size(56.dp),
@@ -236,26 +210,16 @@ private fun ProjectCard(
                 )
             }
 
+            // Name + badge stacked vertically — badge never competes with the name
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                // sharedElement: project name flies from card to the detail screen's TopAppBar title.
-                val nameSharedMod = if (sharedTransitionScope != null && animatedVisibilityScope != null) {
-                    with(sharedTransitionScope) {
-                        Modifier.sharedElement(
-                            sharedContentState = rememberSharedContentState("project_name_${project.id}"),
-                            animatedVisibilityScope = animatedVisibilityScope,
-                        )
-                    }
-                } else Modifier
-
                 Text(
                     text = project.name,
                     style = MaterialTheme.typography.titleMedium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = nameSharedMod,
                 )
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -291,6 +255,7 @@ private fun StatusBadge(status: ProjectStatus) {
             MaterialTheme.colorScheme.surfaceVariant to MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
     }
 
+    // Smooth color transition when badge changes state
     val animatedContainer by animateColorAsState(
         targetValue = containerColor,
         animationSpec = tween(400),
