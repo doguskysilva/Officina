@@ -1,8 +1,16 @@
+@file:OptIn(ExperimentalSharedTransitionApi::class)
+
 package com.doguskytech.officina.screens
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.SharedTransitionScope.ResizeMode
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -96,18 +104,36 @@ fun ProjectDetailScreen(
     onFinishProject: () -> Unit = {},
     onCancelProject: () -> Unit = {},
     highlightTaskId: Int? = null,
+    // Shared element transition — supplied by MainActivity via LocalNavAnimatedContentScope
+    projectId: Int = -1,
+    sharedTransitionScope: SharedTransitionScope? = null,
+    animatedVisibilityScope: AnimatedVisibilityScope? = null,
 ) {
-    when (uiState) {
-        is UiState.Loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator()
+    // Container sharedBounds: this Box morphs from the list card's bounds to full screen.
+    val containerMod = if (sharedTransitionScope != null && animatedVisibilityScope != null) {
+        with(sharedTransitionScope) {
+            Modifier.sharedBounds(
+                sharedContentState = rememberSharedContentState("project_card_${projectId}"),
+                animatedVisibilityScope = animatedVisibilityScope,
+                enter = fadeIn(),
+                exit = fadeOut(),
+                resizeMode = ResizeMode.RemeasureToBounds,
+            )
         }
+    } else Modifier
 
-        is UiState.Error -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text(uiState.message, color = MaterialTheme.colorScheme.error)
-        }
+    Box(modifier = Modifier.fillMaxSize().then(containerMod)) {
+        when (uiState) {
+            is UiState.Loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
 
-        is UiState.Success -> {
-            val project = uiState.data
+            is UiState.Error -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text(uiState.message, color = MaterialTheme.colorScheme.error)
+            }
+
+            is UiState.Success -> {
+                val project = uiState.data
             val lazyListState = rememberLazyListState()
             var toolbarExpanded by rememberSaveable { mutableStateOf(true) }
             val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -145,7 +171,18 @@ fun ProjectDetailScreen(
                 modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
                 topBar = {
                     LargeFlexibleTopAppBar(
-                        title = { Text(project.name) },
+                        title = {
+                            // sharedElement: name text flies from the list card to here.
+                            val titleMod = if (sharedTransitionScope != null && animatedVisibilityScope != null) {
+                                with(sharedTransitionScope) {
+                                    Modifier.sharedElement(
+                                        sharedContentState = rememberSharedContentState("project_name_${projectId}"),
+                                        animatedVisibilityScope = animatedVisibilityScope,
+                                    )
+                                }
+                            } else Modifier
+                            Text(project.name, modifier = titleMod)
+                        },
                         subtitle = {
                             if (isInSelectionMode) {
                                 Text(pluralStringResource(R.plurals.selected_tasks_count, selectedTaskIds.size, selectedTaskIds.size))
@@ -408,6 +445,7 @@ fun ProjectDetailScreen(
                     }
                 }
             }
+            }
         }
-    }
+    }  // Box(containerMod)
 }

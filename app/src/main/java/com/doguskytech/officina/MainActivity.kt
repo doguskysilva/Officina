@@ -17,6 +17,9 @@ import androidx.compose.material3.adaptive.layout.calculatePaneScaffoldDirective
 import androidx.compose.material3.adaptive.navigation3.ListDetailSceneStrategy
 import androidx.compose.material3.adaptive.navigation3.rememberListDetailSceneStrategy
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
+import androidx.navigation3.ui.LocalNavAnimatedContentScope
 import com.doguskytech.officina.ui.AnimationConfig
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteItem
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
@@ -65,7 +68,7 @@ import com.doguskytech.officina.viewmodel.TaskListViewModel
 
 class MainActivity : ComponentActivity() {
 
-    @OptIn(ExperimentalMaterial3AdaptiveApi::class)
+    @OptIn(ExperimentalMaterial3AdaptiveApi::class, ExperimentalSharedTransitionApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -135,6 +138,8 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                 ) {
+                    SharedTransitionLayout {
+                    val sharedScope = this
                     NavDisplay(
                         backStack = activeBackStack,
                         onBack = { activeBackStack.removeLastOrNull() },
@@ -153,6 +158,7 @@ class MainActivity : ComponentActivity() {
                                 val selectedProjectId = activeBackStack
                                     .filterIsInstance<ProjectDetail>()
                                     .lastOrNull()?.projectId
+                                val animScope = LocalNavAnimatedContentScope.current
                                 ProjectListScreen(
                                     uiState = uiState,
                                     selectedProjectId = selectedProjectId,
@@ -161,7 +167,9 @@ class MainActivity : ComponentActivity() {
                                         activeBackStack.add(route)
                                     },
                                     onSortClick = { activeBackStack.add(SortProjects) },
-                                    onNewProjectClick = { activeBackStack.add(NewProject) }
+                                    onNewProjectClick = { activeBackStack.add(NewProject) },
+                                    sharedTransitionScope = sharedScope,
+                                    animatedVisibilityScope = animScope,
                                 )
                             }
 
@@ -172,6 +180,10 @@ class MainActivity : ComponentActivity() {
                                     ProjectDetailViewModel(route.projectId)
                                 }
                                 val uiState by vm.uiState.collectAsStateWithLifecycle()
+                                // Capture at navigation level — before the inner AnimatedContent that
+                                // switches between project IDs on tablet so the shared element is tied
+                                // to the nav transition, not the project-switch animation.
+                                val navAnimScope = LocalNavAnimatedContentScope.current
                                 AnimatedContent(
                                     targetState = route.projectId,
                                     transitionSpec = { AnimationConfig.current.enter },
@@ -191,6 +203,9 @@ class MainActivity : ComponentActivity() {
                                         onFinishProject = { vm.finishProject() },
                                         onCancelProject = { vm.cancelProject() },
                                         highlightTaskId = route.highlightTaskId,
+                                        projectId = route.projectId,
+                                        sharedTransitionScope = sharedScope,
+                                        animatedVisibilityScope = navAnimScope,
                                     )
                                 }
                             }
@@ -279,6 +294,7 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                     )
+                    } // SharedTransitionLayout
                 }
             }
         }

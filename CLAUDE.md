@@ -22,6 +22,7 @@ Stack: Kotlin 2.2.10 · Compose BOM 2026.05.01 · Material3 1.5.0-alpha20 · min
 | Múltiplos back stacks (abas independentes) | [lesson4.md](docs/lesson4.md) | `MainActivity.kt` |
 | NavigationSuiteScaffold — NavBar/Rail/Drawer automático | [lesson6.md](docs/lesson6.md) | `MainActivity.kt` |
 | Animações de transição entre destinos | [lesson8.md](docs/lesson8.md) | `ui/AnimationConfig.kt` |
+| Shared Element Transitions (Container Transform + Hero) | [lesson18.md](docs/lesson18.md) | `screens/ProjectListScreen.kt`, `screens/ProjectDetailScreen.kt` |
 
 ### Arquitetura
 
@@ -180,24 +181,32 @@ annotation class OfficinaPreviews
 
 ```
 app/src/main/java/com/doguskytech/officina/
-├── MainActivity.kt                  ← NavDisplay + NavigationSuiteScaffold
+├── MainActivity.kt                  ← NavDisplay + NavigationSuiteScaffold + SharedTransitionLayout
 ├── data/
-│   ├── Project.kt / Task.kt         ← modelos de domínio
-│   ├── TaskWithProject.kt
-│   └── ProjectRepository.kt         ← MutableStateFlow in-memory
+│   ├── InMemoryProjectRepository.kt ← MutableStateFlow in-memory, implementa domain/repository
+│   └── TaskWithProject.kt
+├── domain/
+│   ├── model/                       ← Kotlin puro, zero imports Android
+│   │   ├── Priority.kt / TaskStatus.kt / ProjectStatus.kt / SortOrder.kt
+│   │   ├── Task.kt / Project.kt
+│   ├── rules/
+│   │   └── ProjectRules.kt          ← regras de negócio puras, testáveis com JUnit
+│   └── repository/
+│       └── ProjectRepository.kt     ← interface com StateFlow
 ├── navigation/
 │   └── Routes.kt                    ← todas as NavKey (@Serializable)
 ├── scenes/
 │   └── BottomSheetSceneStrategy.kt  ← SceneStrategy customizada
 ├── screens/
-│   ├── ProjectListScreen.kt
-│   ├── ProjectDetailScreen.kt       ← HorizontalFloatingToolbar
+│   ├── ProjectListScreen.kt         ← sharedBounds + sharedElement (Module 18)
+│   ├── ProjectDetailScreen.kt       ← HorizontalFloatingToolbar + sharedBounds
 │   ├── TaskListScreen.kt            ← AppBarWithSearch
 │   ├── *Previews.kt                 ← previews separados por tela
 │   └── ...
 ├── ui/
 │   ├── UiState.kt
 │   ├── AnimationConfig.kt           ← feature flag de animações
+│   ├── StringResExt.kt              ← extension props de enum → @StringRes
 │   ├── preview/
 │   │   ├── PreviewAnnotations.kt
 │   │   └── PreviewData.kt
@@ -206,6 +215,7 @@ app/src/main/java/com/doguskytech/officina/
 ├── viewmodel/
 │   ├── ProjectListViewModel.kt
 │   ├── ProjectDetailViewModel.kt
+│   ├── SortProjectsViewModel.kt
 │   └── TaskListViewModel.kt
 └── widget/
     ├── SummaryWidget.kt             ← SizeMode.Responsive
