@@ -17,10 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.GridItemSpan
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items as gridItems
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.input.rememberTextFieldState
@@ -39,6 +36,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBarDefaults
@@ -198,18 +196,18 @@ fun TaskListScreen(
                         )
                     }
                 } else {
-                    LazyVerticalGrid(
-                        columns = GridCells.Adaptive(320.dp),
+                    val groupedTasks = remember(displayedTasks) {
+                        displayedTasks.groupBy { it.projectId }
+                    }
+                    LazyColumn(
                         contentPadding = PaddingValues(
                             top = padding.calculateTopPadding() + 8.dp,
                             bottom = padding.calculateBottomPadding() + 12.dp,
                             start = 16.dp,
                             end = 16.dp,
                         ),
-                        verticalArrangement = Arrangement.spacedBy(4.dp),
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
-                        item(span = { GridItemSpan(maxLineSpan) }) {
+                        item(key = "filters") {
                             FilterRow(
                                 statusFilter = statusFilter,
                                 onStatusFilterChange = { statusFilter = it },
@@ -219,9 +217,9 @@ fun TaskListScreen(
                         }
 
                         if (displayedTasks.isEmpty()) {
-                            item(span = { GridItemSpan(maxLineSpan) }) {
+                            item(key = "empty") {
                                 Box(
-                                    modifier = Modifier.fillMaxWidth().padding(32.dp),
+                                    modifier = Modifier.fillMaxWidth().padding(vertical = 32.dp),
                                     contentAlignment = Alignment.Center,
                                 ) {
                                     Text(
@@ -232,16 +230,34 @@ fun TaskListScreen(
                                 }
                             }
                         } else {
-                            gridItems(displayedTasks, key = { it.task.id }) { item ->
-                                ListItem(
-                                    headlineContent = { Text(item.task.title) },
-                                    supportingContent = { Text(item.projectName) },
-                                    trailingContent = { PriorityOrCheckIcon(item) },
-                                    colors = itemColors,
-                                    modifier = Modifier.fillMaxWidth().clickable {
-                                        onTaskClick(item.projectId, item.projectName, item.task.id)
-                                    },
-                                )
+                            groupedTasks.forEach { (projectId, tasks) ->
+                                item(key = "header_$projectId") {
+                                    Text(
+                                        tasks.first().projectName,
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.padding(top = 16.dp, bottom = 4.dp),
+                                    )
+                                }
+                                itemsIndexed(
+                                    items = tasks,
+                                    key = { _, item -> item.task.id },
+                                ) { index, item ->
+                                    SegmentedListItem(
+                                        selected = false,
+                                        onClick = { onTaskClick(item.projectId, item.projectName, item.task.id) },
+                                        shapes = ListItemDefaults.segmentedShapes(index, tasks.size),
+                                        colors = itemColors,
+                                        trailingContent = { PriorityOrCheckIcon(item) },
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .animateItem()
+                                            .then(
+                                                if (index > 0) Modifier.padding(top = ListItemDefaults.SegmentedGap)
+                                                else Modifier
+                                            ),
+                                    ) { Text(item.task.title) }
+                                }
                             }
                         }
                     }

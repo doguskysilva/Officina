@@ -2,7 +2,7 @@ package com.doguskytech.officina
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.BackHandler
+import androidx.activity.compose.PredictiveBackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.material.icons.Icons
@@ -17,6 +17,13 @@ import androidx.compose.material3.adaptive.layout.calculatePaneScaffoldDirective
 import androidx.compose.material3.adaptive.navigation3.ListDetailSceneStrategy
 import androidx.compose.material3.adaptive.navigation3.rememberListDetailSceneStrategy
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.layout.Box
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
+import kotlinx.coroutines.CancellationException
 import com.doguskytech.officina.ui.AnimationConfig
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteItem
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
@@ -109,8 +116,20 @@ class MainActivity : ComponentActivity() {
                     directive = directive
                 )
 
-                BackHandler(enabled = activeBackStack.size > 1) {
-                    activeBackStack.removeLastOrNull()
+                val predictiveBackProgress = remember { Animatable(0f) }
+                PredictiveBackHandler(enabled = activeBackStack.size > 1) { progress ->
+                    try {
+                        progress.collect { event ->
+                            predictiveBackProgress.snapTo(event.progress)
+                        }
+                        predictiveBackProgress.snapTo(0f)
+                        activeBackStack.removeLastOrNull()
+                    } catch (e: CancellationException) {
+                        predictiveBackProgress.animateTo(
+                            targetValue = 0f,
+                            animationSpec = spring(stiffness = Spring.StiffnessMedium),
+                        )
+                    }
                 }
 
                 NavigationSuiteScaffold(
@@ -135,6 +154,12 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                 ) {
+                    Box(Modifier.graphicsLayer {
+                        val p = predictiveBackProgress.value
+                        scaleX = 1f - 0.1f * p
+                        scaleY = 1f - 0.1f * p
+                        alpha = 1f - 0.4f * p
+                    }) {
                     NavDisplay(
                         backStack = activeBackStack,
                         onBack = { activeBackStack.removeLastOrNull() },
@@ -279,6 +304,7 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                     )
+                    } // Box(graphicsLayer)
                 }
             }
         }

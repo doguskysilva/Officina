@@ -113,6 +113,7 @@ fun ProjectListScreen(
                             onClick = dropUnlessResumed {
                                 onProjectClick(ProjectDetail(project.id, project.name))
                             },
+                            modifier = Modifier.animateItem(),
                         )
                     }
                 }
