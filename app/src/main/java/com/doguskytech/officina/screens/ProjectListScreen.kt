@@ -1,5 +1,12 @@
 package com.doguskytech.officina.screens
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,11 +37,17 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.dropUnlessResumed
 import com.doguskytech.officina.R
@@ -119,11 +132,43 @@ private fun ProjectCard(
     val done = project.tasks.count { it.done }
     val doneRatio = if (total == 0) 0f else done.toFloat() / total
 
+    // Smooth fill as tasks are completed
+    val animatedProgress by animateFloatAsState(
+        targetValue = doneRatio,
+        animationSpec = tween(durationMillis = 600, easing = FastOutSlowInEasing),
+        label = "progress",
+    )
+
     val progressColor = when (project.status) {
         ProjectStatus.WAITING     -> MaterialTheme.colorScheme.outline
         ProjectStatus.IN_PROGRESS -> MaterialTheme.colorScheme.primary
         ProjectStatus.DONE        -> MaterialTheme.colorScheme.tertiary
         ProjectStatus.CANCELLED   -> MaterialTheme.colorScheme.outlineVariant
+    }
+
+    // Smooth color transition when project finishes (primary → tertiary)
+    val animatedProgressColor by animateColorAsState(
+        targetValue = progressColor,
+        animationSpec = tween(durationMillis = 500),
+        label = "progressColor",
+    )
+
+    // One-shot scale bounce when project transitions to DONE
+    val scale = remember(project.id) { Animatable(1f) }
+    val prevStatus = remember(project.id) { mutableStateOf(project.status) }
+    LaunchedEffect(project.status) {
+        val wasNotDone = prevStatus.value != ProjectStatus.DONE
+        prevStatus.value = project.status
+        if (project.status == ProjectStatus.DONE && wasNotDone) {
+            scale.animateTo(1.05f, tween(180, easing = FastOutSlowInEasing))
+            scale.animateTo(
+                targetValue = 1f,
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                    stiffness = Spring.StiffnessMedium,
+                ),
+            )
+        }
     }
 
     val cardColors = if (selected) {
@@ -134,7 +179,12 @@ private fun ProjectCard(
 
     ElevatedCard(
         onClick = onClick,
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .graphicsLayer {
+                scaleX = scale.value
+                scaleY = scale.value
+            },
         colors = cardColors,
     ) {
         Row(
@@ -142,16 +192,17 @@ private fun ProjectCard(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            // Progress ring
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier.size(56.dp),
             ) {
                 CircularProgressIndicator(
-                    progress = { doneRatio },
+                    progress = { animatedProgress },
                     modifier = Modifier.fillMaxSize(),
                     strokeWidth = 5.dp,
                     trackColor = MaterialTheme.colorScheme.surfaceVariant,
-                    color = progressColor,
+                    color = animatedProgressColor,
                 )
                 Text(
                     text = if (total == 0) "–" else "$done/$total",
@@ -159,33 +210,33 @@ private fun ProjectCard(
                 )
             }
 
+            // Name + badge stacked vertically — badge never competes with the name
             Column(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text(
-                        text = project.name,
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.weight(1f),
-                    )
-                    StatusBadge(status = project.status)
-                }
-
-                val pendingCount = project.pendingCount
                 Text(
-                    text = when {
-                        total == 0 -> stringResource(R.string.no_tasks_yet)
-                        pendingCount > 0 -> pluralStringResource(R.plurals.pending_tasks_count, pendingCount, pendingCount)
-                        else -> stringResource(R.string.all_tasks_resolved)
-                    },
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    text = project.name,
+                    style = MaterialTheme.typography.titleMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    StatusBadge(status = project.status)
+                    val pendingCount = project.pendingCount
+                    Text(
+                        text = when {
+                            total == 0 -> stringResource(R.string.no_tasks_yet)
+                            pendingCount > 0 -> pluralStringResource(R.plurals.pending_tasks_count, pendingCount, pendingCount)
+                            else -> stringResource(R.string.all_tasks_resolved)
+                        },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
         }
     }
@@ -203,10 +254,23 @@ private fun StatusBadge(status: ProjectStatus) {
         ProjectStatus.CANCELLED ->
             MaterialTheme.colorScheme.surfaceVariant to MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
     }
+
+    // Smooth color transition when badge changes state
+    val animatedContainer by animateColorAsState(
+        targetValue = containerColor,
+        animationSpec = tween(400),
+        label = "badgeContainer",
+    )
+    val animatedContent by animateColorAsState(
+        targetValue = contentColor,
+        animationSpec = tween(400),
+        label = "badgeContent",
+    )
+
     Surface(
         shape = RoundedCornerShape(50),
-        color = containerColor,
-        contentColor = contentColor,
+        color = animatedContainer,
+        contentColor = animatedContent,
     ) {
         Text(
             text = stringResource(status.labelRes),
